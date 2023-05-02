@@ -28,7 +28,7 @@ for root, subfolders, filenames in os.walk(read_dir):
                 if sub.casefold() in og_name.casefold():
                     dest = os.path.join(root, sub)
                     if not os.path.exists(dest): #check if the subdir exists
-                        print("Read path doesn't exist.")
+                        print("New path doesn't exist.")
                         os.makedirs(dest)
                         print(f"Directory '{sub}' created")
 

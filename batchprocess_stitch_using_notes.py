@@ -29,8 +29,7 @@ print("-Images MUST have 'timepoint' substring in their names")
 print("-Images MUST have 'pos' or 'region' substring in their names")
 print("-Images MUST have channel substring(BF/GFP/RFP) in their names")
 
-print("The input folder")
-stitch_dir = input("Enter the location of Directory containing ONE fish data \n \
+stitch_dir = input("Enter the location of Directory containing ONE fish data \n\
                    (this must contain MIPs and notes.txt file inside): ")
 findscope_flag = 0 #this is a global var
 
@@ -173,7 +172,7 @@ while True:
         print("Error: Can't find notes.txt, Enter manually")
         break    
     start_path=os.path.dirname(start_path)
-print(config.sections())
+# print(config.sections())
 
 #find the fish number from the image path
 fish_num = int(gfp_mip_path[gfp_mip_path.casefold().rfind('fish')+len('fish')]) #find fish number starting from the child dir
@@ -192,7 +191,7 @@ stage_coords = np.zeros(shape=(pos_max,3))
 for i in range(1, pos_max+1):
     for j, val in enumerate(config_prop_list): #x/y/z axes
         stage_coords[i-1][j] = config.getfloat(f"Fish {fish_num} Region {i}", val)
-print(f"Found stage_coords: {stage_coords}")
+print(f"Found stage_coords: \n{stage_coords}")
 
 (ds_h, ds_w) = find_lsm_scope(img.shape[0], img.shape[1])
 # The pixel spacing in our LSM image is 1µm in the z axis, and  0.1625µm in the x and y axes.

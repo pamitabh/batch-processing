@@ -200,9 +200,10 @@ zd, xd, yd = 1, 0.1625, 0.1625 #zeroth dimension is z in skimage coords
 orig_spacing = np.array([zd, xd, yd]) #change to the actual pixel spacing from the microscope
 new_spacing = np.array([zd, xd*ds_w, yd*ds_h]) #downscale x&y by n
 
-# following functions accept a list of 2D images in img_list and use stage_coords read from notes.txt to stitch images, 
-# returns stitched 2D image
 def img_stitcher(stage_coords, img_list):
+    ''' accept a list of 2D images in img_list and use stage_coords read from notes.txt to stitch images
+        Returns: 2D np.array containing the stitched image
+    '''
     if findscope_flag==0:
         print("ERROR: Couldn't find the LSM scope")
         exit()

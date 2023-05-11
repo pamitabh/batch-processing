@@ -27,10 +27,9 @@ print("Instructions for stitching:")
 print("Image stitching works by reading stage positions from the 'notes.txt' file generated during acquisition")
 print("-Images MUST have 'timepoint' substring in their names")
 print("-Images MUST have 'pos' or 'region' substring in their names")
-print("-Images MUST have channel substring(BF/GFP/RFP) in their names")
+print("-Images MUST have channel substring(BF/GFP/RFP) in their names\n")
 
-stitch_dir = input("Enter the location of Directory containing ONE fish data \n\
-                   (this must contain MIPs and notes.txt file inside): ")
+stitch_dir = input("Enter the location of Directory containing ONE fish data \n(this must contain MIPs and notes.txt file inside): ")
 findscope_flag = 0 #this is a global var
 
 def find_lsm_scope(img_h, img_w):

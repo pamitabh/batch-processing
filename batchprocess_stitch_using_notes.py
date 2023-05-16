@@ -223,13 +223,13 @@ def wil_stitch(stage_coords, img_list):
     #um to pixels: 1px = (1/pixel width) um
     # global_coords_px_xoffset = (np.ceil(global_coords_um[:, :-1] / 0.65)).astype(int) #has first img as origin
 
-    global_coords_px_xoffset1 = (np.ceil(global_coords_um[:, 0] / new_spacing[1])).astype(int) #has first img as origin - yoffset
-    global_coords_px_xoffset2 = (np.ceil(global_coords_um[:, 1] / new_spacing[2])).astype(int) #has first img as origin - yoffset
+    global_coords_px_xoffset1 = (np.ceil(global_coords_um[:, 0] / new_spacing[1])).astype(int) #has first img as origin - xoffset
+    global_coords_px_xoffset2 = (np.ceil(global_coords_um[:, 1] / new_spacing[2])).astype(int)
     global_coords_px_xoffset = np.vstack((global_coords_px_xoffset1, global_coords_px_xoffset2)).T
     
     #stitching along x, so choose img with minimum y as the new origin 
     y_offset_origin = np.argmin(global_coords_px_xoffset, axis=0)[1] #axis-0 is columnwise
-    global_coords_px_yoffset = global_coords_px_xoffset - global_coords_px_xoffset[y_offset_origin] #change origin to min x img
+    global_coords_px_yoffset = global_coords_px_xoffset - global_coords_px_xoffset[y_offset_origin] #change origin to min y img
     
     # y is height of the image which means it is the rows in the image
     # x is the first row in the image, y is the 2nd row
@@ -258,7 +258,7 @@ def kla_stitch(stage_coords, img_list):
     # global_coords_px_yoffset = (np.ceil(global_coords_um[:, :-1] / 0.65)).astype(int) #has first img as origin - yoffset
 
     global_coords_px_yoffset1 = (np.ceil(global_coords_um[:, 0] / new_spacing[1])).astype(int) #has first img as origin - yoffset
-    global_coords_px_yoffset2 = (np.ceil(global_coords_um[:, 1] / new_spacing[2])).astype(int) #has first img as origin - yoffset
+    global_coords_px_yoffset2 = (np.ceil(global_coords_um[:, 1] / new_spacing[2])).astype(int)
     global_coords_px_yoffset = np.vstack((global_coords_px_yoffset1, global_coords_px_yoffset2)).T
     
     #stitching along y, so choose img with minimum x to find x-offset

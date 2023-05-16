@@ -143,14 +143,18 @@ config = configparser.ConfigParser()
 if gfp_flag:
     start_path = gfp_mip_path
     img = tiff.imread(os.path.join(gfp_mip_path, gfp_img_list[0]))
-
 elif rfp_flag:
     start_path = rfp_mip_path
     img = tiff.imread(os.path.join(rfp_mip_path, rfp_img_list[0]))
-
 elif bf_flag:
     start_path = bf_path
     img = tiff.imread(os.path.join(bf_path, bf_img_list[0]))
+#find the fish number from the image path
+fish_num = int(start_path[start_path.casefold().rfind('fish')+len('fish')]) #find fish number starting from the child dir
+print(f'Found fish_num = {fish_num}')
+user_check = input('Continue if correct? (y-default/n)') or 'y'
+if user_check.casefold()=='n':
+    fish_num = int(input('Enter fish_num: '))
 
 target1 = 'notes.txt'
 target2 = 'Notes.txt'
@@ -173,12 +177,6 @@ while True:
     start_path=os.path.dirname(start_path)
 # print(config.sections())
 
-#find the fish number from the image path
-fish_num = int(gfp_mip_path[gfp_mip_path.casefold().rfind('fish')+len('fish')]) #find fish number starting from the child dir
-print(f'Found fish_num = {fish_num}')
-user_check = input('Continue if correct? (y-default/n)') or 'y'
-if user_check.casefold()=='n':
-    fish_num = int(input('Enter fish_num: '))
 abbrev = config.getfloat(f"Fish {fish_num} Region 1", "x_pos", fallback=False)
 if (abbrev):
     # print('abbreviated')

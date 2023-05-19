@@ -91,6 +91,7 @@ def find_lsm_scope(img_h, img_w):
     return(ds_factor_h, ds_factor_w)
 
 pos_max = int(input('Enter number of positions/regions of imaging per timepoint (default=4): ') or "4")
+
 #removes dir and non-image(tiff) files from a list
 def remove_non_image_files(big_list, root_path):
     small_list = []
@@ -102,6 +103,16 @@ def remove_non_image_files(big_list, root_path):
             if (ext=="tif" or ext=="tiff"): #img check
                 small_list.append(val)
     return small_list
+    
+#correct the image list ordering
+def reorder_image_by_pos_tp(img_list):
+    ordered_img_list = []
+    for tp in range(1, (len(img_list)//pos_max) + 1):
+        for pos in range(1, pos_max+1):
+            for img_name in img_list: #find the location in img_list with pos and tp
+                if (f'pos{pos}_' in img_name.casefold()) and (f'timepoint{tp}_' in img_name.casefold()):
+                    ordered_img_list.append(img_name)
+    return(ordered_img_list)
 
 #make a list of all img files by channel for stitching
 sub_names = ['BF', 'GFP', 'RFP']
@@ -122,18 +133,18 @@ for root, subfolders, filenames in os.walk(stitch_dir):
             if (not bf_flag) and ('bf' in og_name.casefold()): #find BF
                 print('BF images found at:'+root)
                 bf_path = root
-                bf_img_list = remove_non_image_files(natsorted(os.listdir(root)), root)
+                bf_img_list = reorder_image_by_pos_tp(remove_non_image_files(natsorted(os.listdir(root)), root))
                 bf_flag = True
             elif 'mip' in og_name.casefold():
                 if (not gfp_flag) and ('gfp' in og_name.casefold()):
                     print('GFP MIP images found at:'+root)
                     gfp_mip_path = root
-                    gfp_img_list = remove_non_image_files(natsorted(os.listdir(root)), root)
+                    gfp_img_list = reorder_image_by_pos_tp(remove_non_image_files(natsorted(os.listdir(root)), root))
                     gfp_flag = True
                 elif (not rfp_flag) and ('rfp' in og_name.casefold()):
                     print('RFP MIP images found at:'+root)
                     rfp_mip_path = root
-                    rfp_img_list = remove_non_image_files(natsorted(os.listdir(root)), root)
+                    rfp_img_list = reorder_image_by_pos_tp(remove_non_image_files(natsorted(os.listdir(root)), root))
                     rfp_flag = True
 
 #find the nearest notes.txt
@@ -173,6 +184,8 @@ while True:
     if os.path.dirname(start_path)==start_path: #reached root
         #not found
         print("Error: Can't find notes.txt, Enter manually")
+        notes_path = input('Enter complete path (should end with .txt): ')
+        config.read(notes_path)
         break    
     start_path=os.path.dirname(start_path)
 # print(config.sections())
@@ -276,15 +289,6 @@ def kla_stitch(stage_coords, img_list):
         
     return(stitched_image)
 
-def reorder_image_by_pos_tp(img_list):
-    ordered_img_list = []
-    for tp in range(1, (len(img_list)//pos_max) + 1):
-        for pos in range(1, pos_max+1):
-            for img_name in img_list: #find the location in img_list with pos and tp
-                if (f'pos{pos}_' in img_name.casefold()) and (f'timepoint{tp}_' in img_name.casefold()):
-                    ordered_img_list.append(img_name)
-    return(ordered_img_list)
-
 #read all images per timepoint then stitch and save them at dest 
 ch_flag_list = [bf_flag, gfp_flag, rfp_flag]
 ch_path_list = [bf_path, gfp_mip_path, rfp_mip_path]
@@ -292,7 +296,7 @@ ch_img_list = [bf_img_list, gfp_img_list, rfp_img_list]
 
 for k, ch_flag in enumerate(ch_flag_list):
     ch_path = ch_path_list[k]
-    all_img_list = reorder_image_by_pos_tp(ch_img_list[k])
+    all_img_list = ch_img_list[k]
     ch_name = sub_names[k]
 
     if ch_flag:

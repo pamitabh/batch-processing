@@ -163,8 +163,8 @@ def read_zstack_v2(read_path): #reads image at read_path returning the downsampl
     if len(samp_img.shape)==2: #2 dimensional image, e.g. BF image or multiple z slice
         print('single-stack image')
         stack_full = np.zeros((len(listfiles),samp_img.shape[0]//n,samp_img.shape[1]//n))#,np.uint16)
-        if len(listfiles)==1:
-            img_downscaled = skimage.transform.downscale_local_mean(samp_img, (n, n)) #as already read that image
+        if len(listfiles)==1: #as single file already read in samp_img
+            img_downscaled = skimage.transform.downscale_local_mean(samp_img, (n, n))
             stack_full[0,:,:] = img_downscaled
             print(f'Shape of image {stack_full.shape}')
         else:

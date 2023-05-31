@@ -13,8 +13,13 @@ import tifffile as tiff
 # %%
 # defining source and destination
 # paths
-src = r'Z:\Piyush_Galadriel\time lapse_10_12_22_day\Fish1' #raw test input can't have \ at end
-trg = r'G:\Piyush_Mowgli\piyush_data_conv_downsampled'
+# src = r'Z:\Piyush_Galadriel\time lapse_10_12_22_day\Fish1' #raw test input can't have \ at end
+# trg = r'G:\Piyush_Mowgli\piyush_data_conv_downsampled'
+
+# %%
+# get user input for source and dest
+src = input("Enter the Parent folder for original images: ") #raw test input can't have \ at end
+trg = input("Enter the Destination for saving downsampled images: ")
 
 print(f'Source Dir: {src}')
 print(f'Target Dir: {trg}')
@@ -83,10 +88,8 @@ if type(n)!=int or n<=0:
 
 # %%
 def read_n_downscale_image(read_path):
-
     print(f'Reading: {read_path}')
     img = tiff.imread(read_path)
-
     print(f'Shape of read image {img.shape}')
     if len(img.shape)==2: #2 dimensional image, e.g. BF image
         img_downscaled = skimage.transform.downscale_local_mean(img, (n, n)) #use a kernel of nxn, ds by a factor of n in x & y
@@ -98,10 +101,8 @@ def read_n_downscale_image(read_path):
 for root, subfolders, filenames in os.walk(new_src_path):
     for filename in filenames:
         # print(f'Reading: {filename}')
-        
         filepath = os.path.join(root, filename)
         # print(f'Reading: {filepath}')
-
         filename_list = filename.split('.')
         og_name = filename_list[0] #first of list=name
         ext = filename_list[-1] #last of list=extension
@@ -110,7 +111,11 @@ for root, subfolders, filenames in os.walk(new_src_path):
             # print(f'Reading Image: {filepath}')
             fish_num = og_name[og_name.find('fish')+4]
             save_path = os.path.join(new_trg_path, 'fish'+str(fish_num)) #save the ds images sorted by fish number
-            tiff.imwrite(os.path.join(save_path, og_name[:-len('_MMStack')]+'_ds.'+ext), read_n_downscale_image(read_path=filepath))
+            if og_name.endswith('_MMStack'): #remove 'MMStack' in saved name
+                save_name = og_name[:-len('_MMStack')]+'_ds.'+ext
+            else:
+                save_name = og_name+'_ds.'+ext
+            tiff.imwrite(os.path.join(save_path, save_name), read_n_downscale_image(read_path=filepath))
 
 # %% [markdown]
 # ---

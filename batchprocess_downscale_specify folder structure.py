@@ -207,13 +207,13 @@ for pos in tqdm(poses, desc=' pos') :
                     read_path = os.path.join(new_src_path, pos, sub_dir, channel, tp)
                     save_name = tp+'_'+pos+'_'+channel+'_ds.ome.tif'
         
-                img_stack = read_zstack_v2(read_path)
-                if len(img_stack.shape)==2:
-                    m_data = {'axes': 'YX'}
-                else: 
-                    m_data = {'axes': 'ZYX', 'spacing': 1/10000, 'unit': 'CENTIMETER'}
-                tiff.imwrite(os.path.join(save_path, save_name), read_zstack_v2(read_path), resolution=(1./(yd_new/10000), 1./(xd_new/10000)), resolutionunit='CENTIMETER', dtype=img_stack.dtype, shape=img_stack.shape, ome=True);
-
+                # img_stack = read_zstack_v2(read_path)
+                # if len(img_stack.shape)==2:
+                #     m_data = {'axes': 'YX'}
+                # else: 
+                #     m_data = {'axes': 'ZYX', 'spacing': 1/10000, 'unit': 'CENTIMETER'}
+                # tiff.imwrite(os.path.join(save_path, save_name), read_zstack_v2(read_path), resolution=(1./(yd_new/10000), 1./(xd_new/10000)), resolutionunit='CENTIMETER', dtype=img_stack.dtype, shape=img_stack.shape, ome=True);
+                tiff.imwrite(os.path.join(save_path, save_name), read_zstack_v2(read_path))
 # %% [markdown]
 # ---
 

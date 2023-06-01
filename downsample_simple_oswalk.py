@@ -93,9 +93,12 @@ def read_n_downscale_image(read_path):
     print(f'Shape of read image {img.shape}')
     if len(img.shape)==2: #2 dimensional image, e.g. BF image
         img_downscaled = skimage.transform.downscale_local_mean(img, (n, n)) #use a kernel of nxn, ds by a factor of n in x & y
-    else: #image zstack, multi-page tiff
+    elif len(img.shape)==3: #image zstack
         img_downscaled = skimage.transform.downscale_local_mean(img, (1, n, n)) #use a kernel of 1xnxn, no ds in z
-    return(img_downscaled)
+    else:
+        print("Can't process images with >3dimensions")
+        return(None)
+    return(skimage.util.img_as_uint(skimage.exposure.rescale_intensity(img_downscaled)))
 
 # %%
 for root, subfolders, filenames in os.walk(new_src_path):
@@ -116,7 +119,6 @@ for root, subfolders, filenames in os.walk(new_src_path):
             else:
                 save_name = og_name+'_ds.'+ext
             tiff.imwrite(os.path.join(save_path, save_name), read_n_downscale_image(read_path=filepath))
-
 # %% [markdown]
 # ---
 

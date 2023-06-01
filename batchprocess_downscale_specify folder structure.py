@@ -200,7 +200,7 @@ for pos in tqdm(poses, desc=' pos') :
     for sub_dir in tqdm(sub_dirs, desc=' subdir(snap/zStack)'):
         for channel in tqdm(channels, desc=' channel'):
             for tp in tqdm(timepoints, desc=' timepoints'):
-                if 'Snap'.casefold() in sub_dir.casefold(): #check if its brightfield folder
+                if 'BF'.casefold() in sub_dir.casefold(): #check if its brightfield folder
                     read_path = os.path.join(new_src_path, pos, sub_dir, tp)
                     save_name = tp+'_'+pos+'_'+'BF'+'_ds.ome.tif'
                 else:

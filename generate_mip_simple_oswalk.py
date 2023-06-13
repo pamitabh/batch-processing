@@ -7,11 +7,10 @@
 import os
 import numpy as np
 import skimage
-from PIL import Image
 import tifffile as tiff
 
 #ask the user for the inputs
-print('Warning: This code ONLY works with single channel z-stack tiff images. It will give unpredictable results with multiple channels.')
+print('Warning: This code ONLY works with single channel z-stack tiff images. It will give unpredictable results with >3 dimensions')
 main_dir = input('Enter the Parent directory where ALL the image stacks are stored: ')
 
 # Batchprocess MIP
@@ -39,5 +38,10 @@ for root, subfolders, filenames in os.walk(main_dir):
                             print("Write path doesn't exist.")
                             os.makedirs(dest)
                             print(f"Directory '{ch_name.casefold()}_mip' created")
-                        img_mip = Image.fromarray(arr_mip)
-                        img_mip.save(os.path.join(dest, og_name+'_mip.tif'))
+
+                        img_mip = skimage.util.img_as_uint(skimage.exposure.rescale_intensity(arr_mip))
+                        if og_name.endswith('_MMStack'): #remove 'MMStack' in saved name
+                            save_name = og_name[:-len('_MMStack')]+'_mip.'+ext
+                        else:
+                            save_name = og_name+'_mip.'+ext
+                        tiff.imwrite(os.path.join(dest, save_name), img_mip)

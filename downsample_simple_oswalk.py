@@ -11,28 +11,20 @@ from skimage import io
 import tifffile as tiff
 
 # %%
-# defining source and destination
-# paths
-# src = r'Z:\Piyush_Galadriel\time lapse_10_12_22_day\Fish1' #raw test input can't have \ at end
-# trg = r'G:\Piyush_Mowgli\piyush_data_conv_downsampled'
-
-# %%
 # get user input for source and dest
-src = input("Enter the Parent folder for original images: ") #raw test input can't have \ at end
-trg = input("Enter the Destination for saving downsampled images: ")
-
-print(f'Source Dir: {src}')
-print(f'Target Dir: {trg}')
-flag = input('If this is incorrect, change it in the code. Continue? (y/n):')
-if(flag.casefold()!='y'):
+src = os.path.normpath(input("Enter the Parent folder for original images (should have 'Acquisition' inside it): "))
+trg = os.path.normpath(input("Enter the Destination folder for saving downsampled images: "))
+print(f"Source Dir: {src}")
+print(f"Target Dir: {trg}")
+flag = input("Continue? (y/n):")
+if flag.casefold() != "y":
     exit()
 
 # %%
-new_folder_name = src.split('\\')[-1] + '_downsampled'
-
+new_folder_name = os.path.split(src)[-1] + "_downsampled"
 new_trg_path = os.path.join(trg, new_folder_name)
 os.mkdir(new_trg_path)
-print(f'made dir: {new_trg_path}')
+print(f"made dir: {new_trg_path}")
 
 # %% [markdown]
 # Assuming the folder structure is of the form: 

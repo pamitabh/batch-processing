@@ -1,9 +1,6 @@
-# %%
 from pathlib import Path
 import shutil
 import os
-
-# %%
 import numpy as np
 import skimage
 from skimage import io
@@ -26,15 +23,14 @@ n = (
     input("Enter downscaling factor for x and y dimensions (default=4):")
     or 4
 )
-if type(n) != int or n <= 0:
+if type(n)!=int or n<=0:
     print("User Error: downscaling factor MUST be a positive integer. Exiting")
     exit()
 
-# n is the downscaling factor in x and y, change it accordingly.
-single_fish_flag = (
-    input("Is there ONLY 1 fish per Acquisition? (y-default/n):") or 'y'
-)
-if single_fish_flag.casefold() != 'y' or single_fish_flag.casefold() != 'n':
+# single_fish_flag is used to find if single acquisitions have single fish or not
+single_fish_flag = input("Is there ONLY 1 fish per Acquisition? (y-default/n):") or "y"
+print(type(single_fish_flag))
+if single_fish_flag.casefold() not in ('y', 'n'):
     print("User Error: Need to enter 'y' or 'n'. Exiting")
     exit()
 
@@ -116,10 +112,3 @@ for root, subfolders, filenames in os.walk(src):
             path.mkdir(parents=True, exist_ok=True)
 
             single_acquisition_downsample(single_acq_path, single_trg_path)
-            
-
-
-
-# ---
-
-# %%

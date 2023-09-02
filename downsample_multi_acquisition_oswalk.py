@@ -29,7 +29,6 @@ if type(n)!=int or n<=0:
 
 # single_fish_flag is used to find if single acquisitions have single fish or not
 single_fish_flag = input("Is there ONLY 1 fish per Acquisition? (y-default/n):") or "y"
-print(type(single_fish_flag))
 if single_fish_flag.casefold() not in ('y', 'n'):
     print("User Error: Need to enter 'y' or 'n'. Exiting")
     exit()

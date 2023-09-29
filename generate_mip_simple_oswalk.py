@@ -40,7 +40,9 @@ for root, subfolders, filenames in os.walk(main_dir):
                             print(f"Directory '{ch_name.casefold()}_mip' created")
 
                         img_mip = skimage.util.img_as_uint(skimage.exposure.rescale_intensity(arr_mip))
-                        if og_name.endswith('_MMStack'): #remove 'MMStack' in saved name
+                        if og_name.endswith('_MMStack_1'): #skip file
+                            continue
+                        elif og_name.endswith('_MMStack'): #remove 'MMStack' in saved name
                             save_name = og_name[:-len('_MMStack')]+'_mip.'+ext
                         else:
                             save_name = og_name+'_mip.'+ext

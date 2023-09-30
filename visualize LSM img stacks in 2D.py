@@ -123,7 +123,7 @@ print(f'Found these fish data:\n{main_dir_list}')
 pos_input_flag = input('Is the number of pos/regions in each folder above the same? (y-default/n)') or 'y'
 if pos_input_flag.casefold()=='y':
     pos_max_list = len(main_dir_list)* \
-    [int(input('Enter number of positions/regions of imaging per timepoint (default=4)') or '4')]
+    [int(input('Enter number of positions/regions of imaging per timepoint (default=4)') or "4")]
 else:
     pos_max_list = []
     while pos_max_list != len(main_dir_list):
@@ -181,9 +181,9 @@ def find_lsm_scope(img_h, img_w):
         print('LSM Scope used: WIL')
         print(f'Downscaling factor = {ds_factor_w}')
 
-    user_check = input('Is the above information correct?(y-default/n): ') or 'y'
-    if user_check.casefold()=='n':
-        findscope_flag = 0
+    # user_check = input('Is the above information correct?(y-default/n): ') or 'y'
+    # if user_check.casefold()=='n':
+    #     findscope_flag = 0
 
     if findscope_flag==0: #couldn't find scope, enter manually
         print("ERROR: Failed to determine LSM scope automatically.\nEnter manually")
@@ -362,7 +362,7 @@ def kla_stitch(stage_coords, img_list):
     return stitched_image
 
 # %%
-sub_names = ["BF", "GFP", "RFP"]
+sub_names = ["BF", "GFP_mip", "RFP_mip"]
 target1 = "notes.txt"
 target2 = "Notes.txt"
 
@@ -420,17 +420,20 @@ for main_dir, pos_max in zip(main_dir_list, pos_max_list):  # main_dir = locatio
     # get sample image to find scope and downscaling factor
     if gfp_flag:
         start_path = gfp_mip_path
-        img = tiff.imread(os.path.join(gfp_mip_path, gfp_img_list[0]))
+        img_path = os.path.join(gfp_mip_path, gfp_img_list[0])
     elif rfp_flag:
         start_path = rfp_mip_path
-        img = tiff.imread(os.path.join(rfp_mip_path, rfp_img_list[0]))
+        img_path = os.path.join(rfp_mip_path, rfp_img_list[0])
     elif bf_flag:
         start_path = bf_path
-        img = tiff.imread(os.path.join(bf_path, bf_img_list[0]))
-    # find the fish number from the image path
+        img_path = os.path.join(bf_path, bf_img_list[0])
+    img = tiff.imread(img_path)
+    # fish_num = int(
+    #     start_path[start_path.casefold().rfind("fish") + len("fish")]
+    # )  # find fish number starting from the child dir
     fish_num = int(
-        start_path[start_path.casefold().rfind("fish") + len("fish")]
-    )  # find fish number starting from the child dir
+        img_path[img_path.casefold().rfind("fish") + len("fish")]
+    )  # find fish number starting from the img_name
     print(f"Found fish_num = {fish_num}")
     # user_check = "y"
     # if user_check.casefold() == "n":
@@ -488,12 +491,12 @@ for main_dir, pos_max in zip(main_dir_list, pos_max_list):  # main_dir = locatio
         if ch_flag:
             print(f"Stitching {ch_name} images...")
             save_path = os.path.join(
-                ch_path_list[k], ch_name.casefold() + "mip_stitched"
+                ch_path_list[k], ch_name.casefold() + "_stitched"
             )
             if not os.path.exists(save_path):  # check if the dest exists
                 print("Save path doesn't exist.")
                 os.makedirs(save_path)
-                print(f"Directory '{ch_name.casefold()}_mip_stitched' created")
+                print(f"Directory '{ch_name.casefold()}_stitched' created")
             else:
                 print("Save path exists")
 

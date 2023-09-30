@@ -13,14 +13,18 @@ from skimage import io
 import tifffile as tiff
 
 # %%
-# get user input for source and dest
-src = os.path.normpath(input("Enter the Parent folder for original images (should have 'Acquisition' inside it): "))
-trg = os.path.normpath(input("Enter the Destination folder for saving downsampled images: "))
-print(f"Source Dir: {src}")
-print(f"Target Dir: {trg}")
-flag = input("Continue? (y/n):")
-if flag.casefold() != "y":
-    exit()
+src, trg = '', ''
+while src==trg:
+    src = os.path.normpath(input("Enter the Parent folder for original images: "))
+    trg = os.path.normpath(input("Enter the Destination folder: "))
+    if src==trg:
+        print('Source and Target cannot be same location. Re-Enter..')
+
+# print(f"Source Dir: {src}")
+# print(f"Target Dir: {trg}")
+# flag = input("Continue? (y/n):")
+# if flag.casefold() != "y":
+#     exit()
 
 # %%
 new_folder_name = os.path.split(src)[-1] + "_downsampled"

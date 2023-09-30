@@ -10,8 +10,13 @@ import tifffile as tiff
 
 # %%
 # get user input for source and dest
-src = os.path.normpath(input("Enter the Parent folder for original images: "))
-trg = os.path.normpath(input("Enter the Destination folder: "))
+src, trg = '', ''
+while src==trg:
+    src = os.path.normpath(input("Enter the Parent folder for original images: "))
+    trg = os.path.normpath(input("Enter the Destination folder: "))
+    if src==trg:
+        print('Source and Target cannot be same location. Re-Enter..')
+
 # print(f"Source Dir: {src}")
 # print(f"Target Dir: {trg}")
 # flag = input("Continue? (y/n):")

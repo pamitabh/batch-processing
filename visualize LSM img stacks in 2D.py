@@ -34,10 +34,18 @@ import re
 
 # %%
 top_dir = os.path.normpath(input('Enter the top directory with ALL acquisitions: '))
-action_flag = int(input('''Do you want to:
-                    1. Find Max Intensity Projection AND Stitch (default)
-                    2. Only find Max Intensity Projection
-                    3. Only Stitch''') or '1')
+action_flag = 0
+
+while action_flag==0:
+    action_flag = int(input('''Do you want to:
+                        1. Find Max Intensity Projection AND Stitch (default)
+                        2. Only find Max Intensity Projection
+                        3. Only Stitch\n''') or '1')
+    if action_flag ==1 or action_flag==2 or action_flag==3:
+        break
+    else:
+        action_flag=0
+        print('Invalid value: Re-Enter')
 
 # %% [markdown]
 # # Batchprocess MIP

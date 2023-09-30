@@ -104,7 +104,7 @@ for root, subfolders, filenames in os.walk(new_src_path):
         og_name = filename_list[0] #first of list=name
         ext = filename_list[-1] #last of list=extension
 
-        if ext=="tif" or ext=="tiff": #only compress tiff files (prevents compression of other filetypes)
+        if (ext=="tif" or ext=="tiff") and (not og_name.endswith('_MMStack_1')): # only compress tiff files, ignore spill-over stack
             # print(f'Reading Image: {filepath}')
             fish_num = og_name[og_name.find('fish')+4]
             save_path = os.path.join(new_trg_path, 'fish'+str(fish_num)) #save the ds images sorted by fish number

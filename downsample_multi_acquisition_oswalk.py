@@ -84,7 +84,7 @@ def single_acquisition_downsample(acq_path, new_trg_path):
             og_name = filename_list[0]  # first of list=name
             ext = filename_list[-1]  # last of list=extension
 
-            if (ext == "tif" or ext == "tiff"):  # only compress tiff files
+            if (ext=="tif" or ext=="tiff") and (not og_name.endswith('_MMStack_1')): # only compress tiff files, ignore spill-over stack
                 if single_fish_flag.casefold()=='n':  # save the ds images in fish folder
                     fish_num = og_name[og_name.casefold().find("fish") + len("fish")]
                     save_path = os.path.join(new_trg_path, "fish" + str(fish_num))

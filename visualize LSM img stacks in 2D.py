@@ -64,7 +64,7 @@ def batchprocess_mip(main_dir):
             og_name = filename_list[0] #first of list=name
             ext = filename_list[-1] #last of list=extension
 
-            if ext=="tif" or ext=="tiff": #tiff files
+            if (ext=="tif" or ext=="tiff") and (not og_name.endswith('_MMStack_1')): #tiff files which are not spilled-over stacks
                 read_image = tiff.imread(filepath)
 
                 if len(read_image.shape)==3: #check if 3D images
@@ -79,9 +79,8 @@ def batchprocess_mip(main_dir):
                                 print(f"Directory '{ch_name.casefold()}_mip' created")
 
                             img_mip = skimage.util.img_as_uint(skimage.exposure.rescale_intensity(arr_mip))
-                            if og_name.endswith('_MMStack_1'): #skip file
-                                continue
-                            elif og_name.endswith('_MMStack'): #remove 'MMStack' in saved name
+
+                            if og_name.endswith('_MMStack'): #remove 'MMStack' in saved name
                                 save_name = og_name[:-len('_MMStack')]+'_mip.'+ext
                             else:
                                 save_name = og_name+'_mip.'+ext

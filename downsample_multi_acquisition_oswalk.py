@@ -3,9 +3,6 @@ import shutil
 import os
 import numpy as np
 import skimage
-from skimage import io
-
-# from PIL import Image, TiffTags
 import tifffile as tiff
 
 # %%

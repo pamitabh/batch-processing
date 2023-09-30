@@ -4,12 +4,8 @@
 # from pathlib import Path
 import shutil
 import os
-
-# %%
 import numpy as np
 import skimage
-from skimage import io
-# from PIL import Image, TiffTags
 import tifffile as tiff
 
 # %%
@@ -117,7 +113,3 @@ for root, subfolders, filenames in os.walk(new_src_path):
             else:
                 save_name = og_name+'_ds.'+ext
             tiff.imwrite(os.path.join(save_path, save_name), read_n_downscale_image(read_path=filepath))
-# %% [markdown]
-# ---
-
-

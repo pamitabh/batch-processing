@@ -52,6 +52,7 @@ while action_flag==0:
 
 # %%
 def batchprocess_mip(main_dir):
+    print('Finding Max Intensity Projections...')
     print('Warning: This code ONLY works with single channel z-stack tiff images. It will give unpredictable results with >3 dimensions')
     channel_names = ['GFP', 'RFP']
     for root, subfolders, filenames in os.walk(main_dir):
@@ -67,7 +68,6 @@ def batchprocess_mip(main_dir):
                 read_image = tiff.imread(filepath)
 
                 if len(read_image.shape)==3: #check if 3D images
-                    print(f'Processing MIP for: {filepath}')
                     arr_mip = np.max(read_image, axis=0) #create MIP
 
                     for ch_name in channel_names: #save mip array in right directory with correct channel name
@@ -85,6 +85,7 @@ def batchprocess_mip(main_dir):
                                 save_name = og_name[:-len('_MMStack')]+'_mip.'+ext
                             else:
                                 save_name = og_name+'_mip.'+ext
+                            print(f'Processing MIP for: {filepath}')
                             tiff.imwrite(os.path.join(dest, save_name), img_mip)
 
 # %%
@@ -120,10 +121,10 @@ for root, subfolders, _ in os.walk(top_dir):
 print(f'Found these fish data:\n{main_dir_list}')
 
 # %%
-pos_input_flag = input('Is the number of pos/regions in each folder above the same? (y-default/n)')
+pos_input_flag = input('Is the number of pos/regions in each folder above the same? (y-default/n)') or 'y'
 if pos_input_flag.casefold()=='y':
     pos_max_list = len(main_dir_list)* \
-    [int(input('Enter number of positions/regions of imaging per timepoint (default=4)'))]
+    [int(input('Enter number of positions/regions of imaging per timepoint (default=4)') or '4')]
 else:
     pos_max_list = []
     while pos_max_list != len(main_dir_list):

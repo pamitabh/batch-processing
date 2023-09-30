@@ -64,7 +64,7 @@ def batchprocess_mip(main_dir):
             og_name = filename_list[0] #first of list=name
             ext = filename_list[-1] #last of list=extension
 
-            if (ext=="tif" or ext=="tiff") and (not og_name.endswith('_MMStack_1')): #tiff files which are not spilled-over stacks
+            if (ext=="tif" or ext=="tiff") and (not (og_name.endswith('_MMStack_1') or (og_name.endswith('_MMStack_1_ds')))): #tiff files which are not spilled-over stacks
                 read_image = tiff.imread(filepath)
 
                 if len(read_image.shape)==3: #check if 3D images

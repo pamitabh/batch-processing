@@ -50,6 +50,11 @@ while action_flag==0:
 # %% [markdown]
 # # Batchprocess MIP
 
+def check_overflowed_stack(filename):
+    '''return True if the 'filename' is a overflowed_stack else False'''
+    num = filename[filename.casefold().rfind("_") + 1)]
+    return(re.match(r'\d', num))
+
 # %%
 def batchprocess_mip(main_dir):
     print('Finding Max Intensity Projections...')
@@ -63,8 +68,9 @@ def batchprocess_mip(main_dir):
             filename_list = filename.split('.')
             og_name = filename_list[0] #first of list=name
             ext = filename_list[-1] #last of list=extension
+            os.listdir
 
-            if (ext=="tif" or ext=="tiff") and (not (og_name.endswith('_MMStack_1') or (og_name.endswith('_MMStack_1_ds')))): #tiff files which are not spilled-over stacks
+            if (ext=="tif" or ext=="tiff") and (not check_overflowed_stack(og_name)):#(og_name.endswith('_MMStack_1') or (og_name.endswith('_MMStack_1_ds')))): #tiff files which are not spilled-over stacks
                 read_image = tiff.imread(filepath)
 
                 if len(read_image.shape)==3: #check if 3D images
@@ -366,7 +372,7 @@ sub_names = ["BF", "GFP_mip", "RFP_mip"]
 target1 = "notes.txt"
 target2 = "Notes.txt"
 
-for main_dir, pos_max in zip(main_dir_list, pos_max_list):  # main_dir = location of Directory containing ONE fish data \n(this must contain BF/MIPs):
+for main_dir, pos_max in zip(main_dir_list, pos_max_list):  # main_dir = location of Directory containing ONE fish data
     # make a list of all 2D img files by channel
     bf_flag, gfp_flag, rfp_flag = False, False, False  # 0 means not found, 1 mean found
     bf_path, gfp_mip_path, rfp_mip_path = "", "", ""

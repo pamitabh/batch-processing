@@ -47,12 +47,42 @@ while action_flag==0:
         action_flag=0
         print('Invalid value: Re-Enter')
 
+if(action_flag!=2): #more info for stitching
+    print('''Instructions for stitching:
+        - Image stitching works by reading stage positions from the 'notes.txt' file generated during acquisition
+        - Images MUST have:
+          a. 'timepoint' substring in their names
+          b. 'pos' or 'region' substring in their names
+          c. channel substring(BF/GFP/RFP) in their names''')
+    
+    # all unique BF location gets added to the main_dir_list
+    main_dir_list = []
+    for root, subfolders, _ in os.walk(top_dir):
+        if "BF" in subfolders:
+            main_dir_list.append(root)
+    print(f'Found these fish data:\n{main_dir_list}')
+    pos_input_flag = input('Is the number of pos/regions in each folder above the same? (y-default/n)') or 'y'
+    if pos_input_flag.casefold()=='y':
+        pos_max_list = len(main_dir_list)* \
+        [int(input('Enter number of positions/regions of imaging per timepoint (default=4)') or "4")]
+    else:
+        pos_max_list = []
+        while pos_max_list != len(main_dir_list):
+            pos_max_list = (input('Enter the list of positions/regions separated by space in the above order')).split()
+            if pos_max_list != len(main_dir_list):
+                print('entered list length is not same as the number of folders found above. Please re-enter.')
+                continue
+            else:
+                # convert each item to int type
+                for i in range(len(pos_max_list)):
+                    pos_max_list[i] = int(pos_max_list[i])
+
 # %% [markdown]
 # # Batchprocess MIP
 
 def check_overflowed_stack(filename):
     '''return True if the 'filename' is a overflowed_stack else False'''
-    num = filename[filename.casefold().rfind("_") + 1]
+    num = filename[filename.casefold().rfind("mmstack_") + len("mmstack_")]
     return(re.match(r'\d', num))
 
 # %%
@@ -92,7 +122,6 @@ def batchprocess_mip(main_dir):
                                 save_name = og_name+'_mip.'+ext
                             print(f'Processing MIP for: {filepath}')
                             tiff.imwrite(os.path.join(dest, save_name), img_mip)
-
 # %%
 if action_flag!=3:
     batchprocess_mip(main_dir=top_dir)
@@ -100,16 +129,8 @@ if action_flag!=3:
 # %% [markdown]
 # # Stitching
 
-# %%
 if action_flag==2: #don't stitch and exit
     exit()
-
-# %%
-print("Instructions for stitching:")
-print("Image stitching works by reading stage positions from the 'notes.txt' file generated during acquisition")
-print("-Images MUST have 'timepoint' substring in their names")
-print("-Images MUST have 'pos' or 'region' substring in their names")
-print("-Images MUST have channel substring(BF/GFP/RFP) in their names")
 
 # stitch_dir_flag = input("Is stitching directory same as Parent directory above?(y/n-default): ") or 'n'
 # if stitch_dir_flag.casefold()=='y':
@@ -117,32 +138,6 @@ print("-Images MUST have channel substring(BF/GFP/RFP) in their names")
 # else:
 #     stitch_dir = input('Enter the location of Parent directory for stitching (must contain MIPs and notes.txt file inside): ')
 
-# %%
-# all unique BF location gets added to the main_dir_list
-main_dir_list = []
-for root, subfolders, _ in os.walk(top_dir):
-    if "BF" in subfolders:
-        main_dir_list.append(root)
-print(f'Found these fish data:\n{main_dir_list}')
-
-# %%
-pos_input_flag = input('Is the number of pos/regions in each folder above the same? (y-default/n)') or 'y'
-if pos_input_flag.casefold()=='y':
-    pos_max_list = len(main_dir_list)* \
-    [int(input('Enter number of positions/regions of imaging per timepoint (default=4)') or "4")]
-else:
-    pos_max_list = []
-    while pos_max_list != len(main_dir_list):
-        pos_max_list = (input('Enter the list of positions/regions separated by space in the above order')).split()
-        if pos_max_list != len(main_dir_list):
-            print('entered list length is not same as the number of folders found above. Please re-enter.')
-            continue
-        else:
-            # convert each item to int type
-            for i in range(len(pos_max_list)):
-                pos_max_list[i] = int(pos_max_list[i])
-
-# %%
 findscope_flag = 0 #this is a global var
 
 def find_lsm_scope(img_h, img_w):
@@ -527,5 +522,3 @@ for main_dir, pos_max in zip(main_dir_list, pos_max_list):  # main_dir = locatio
                     stitched_img_uint,
                     check_contrast=False,
                 )  # save the image
-
-

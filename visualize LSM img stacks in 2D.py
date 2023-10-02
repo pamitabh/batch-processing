@@ -52,7 +52,7 @@ while action_flag==0:
 
 def check_overflowed_stack(filename):
     '''return True if the 'filename' is a overflowed_stack else False'''
-    num = filename[filename.casefold().rfind("_") + 1)]
+    num = filename[filename.casefold().rfind("_") + 1]
     return(re.match(r'\d', num))
 
 # %%

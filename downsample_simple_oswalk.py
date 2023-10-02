@@ -25,8 +25,9 @@ while src==trg:
 # %%
 new_folder_name = os.path.split(src)[-1] + "_downsampled"
 new_trg_path = os.path.join(trg, new_folder_name)
-os.mkdir(new_trg_path)
-print(f"made dir: {new_trg_path}")
+if not os.path.exists(new_trg_path):
+    os.mkdir(new_trg_path)
+    print(f"made dir: {new_trg_path}")
 
 # %% [markdown]
 # Assuming the folder structure is of the form: 

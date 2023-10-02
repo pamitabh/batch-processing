@@ -57,8 +57,9 @@ def read_n_downscale_image(read_path):
 # %%
 new_folder_name = os.path.split(src)[-1] + "_downsampled"
 trg_path = os.path.join(trg, new_folder_name)
-os.mkdir(trg_path)
-print(f"Made dir: {trg_path}")
+if not os.path.exists(trg_path):
+    os.mkdir(trg_path)
+    print(f"Made dir: {trg_path}")
 
 # %%
 def single_acquisition_downsample(acq_path, new_trg_path):

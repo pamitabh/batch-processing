@@ -4,6 +4,7 @@ import os
 import numpy as np
 import skimage
 import tifffile as tiff
+import re
 
 # %%
 # get user input for source and dest
@@ -54,6 +55,11 @@ def read_n_downscale_image(read_path):
         skimage.exposure.rescale_intensity(img_downscaled)
         )
 
+def check_overflowed_stack(filename):
+    '''return True if the 'filename' is a overflowed_stack else False'''
+    num = filename[filename.casefold().rfind("mmstack_") + len("mmstack_")]
+    return(re.match(r'\d', num))
+
 # %%
 new_folder_name = os.path.split(src)[-1] + "_downsampled"
 trg_path = os.path.join(trg, new_folder_name)
@@ -63,7 +69,6 @@ if not os.path.exists(trg_path):
 
 # %%
 def single_acquisition_downsample(acq_path, new_trg_path):
-
 # Assuming the acq_path has the acquisition dir:
 # acq_path = Acquisition dir -> {fish1 dir, fish2 dir, etc.} + notes.txt
     files = os.listdir(acq_path)
@@ -85,7 +90,7 @@ def single_acquisition_downsample(acq_path, new_trg_path):
             og_name = filename_list[0]  # first of list=name
             ext = filename_list[-1]  # last of list=extension
 
-            if (ext=="tif" or ext=="tiff") and (not og_name.endswith('_MMStack_1')): # only compress tiff files, ignore spill-over stack
+            if (ext=="tif" or ext=="tiff") and (not check_overflowed_stack(og_name)): # only compress tiff files, ignore spill-over stack
                 if single_fish_flag.casefold()=='n':  # save the ds images in fish folder
                     fish_num = og_name[og_name.casefold().find("fish") + len("fish")]
                     save_path = os.path.join(new_trg_path, "fish" + str(fish_num))

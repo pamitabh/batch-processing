@@ -7,6 +7,7 @@ import os
 import numpy as np
 import skimage
 import tifffile as tiff
+import re
 
 # %%
 src, trg = '', ''
@@ -95,7 +96,11 @@ def read_n_downscale_image(read_path):
         return(None)
     return(skimage.util.img_as_uint(skimage.exposure.rescale_intensity(img_downscaled)))
 
-# %%
+def check_overflowed_stack(filename):
+    '''return True if the 'filename' is a overflowed_stack else False'''
+    num = filename[filename.casefold().rfind("mmstack_") + len("mmstack_")]
+    return(re.match(r'\d', num))
+
 for root, subfolders, filenames in os.walk(new_src_path):
     for filename in filenames:
         # print(f'Reading: {filename}')
@@ -105,7 +110,7 @@ for root, subfolders, filenames in os.walk(new_src_path):
         og_name = filename_list[0] #first of list=name
         ext = filename_list[-1] #last of list=extension
 
-        if (ext=="tif" or ext=="tiff") and (not og_name.endswith('_MMStack_1')): # only compress tiff files, ignore spill-over stack
+        if (ext=="tif" or ext=="tiff") and (not check_overflowed_stack(og_name)): # only compress tiff files, ignore spill-over stack
             # print(f'Reading Image: {filepath}')
             fish_num = og_name[og_name.find('fish')+4]
             save_path = os.path.join(new_trg_path, 'fish'+str(fish_num)) #save the ds images sorted by fish number

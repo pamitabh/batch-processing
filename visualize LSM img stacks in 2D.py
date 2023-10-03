@@ -416,7 +416,7 @@ for main_dir, pos_max in zip(main_dir_list, pos_max_list):  # main_dir = locatio
     # find the nearest notes.txt
     config = configparser.ConfigParser()
     start_path = ""
-    img = np.zeros((1, 1))  # dummy
+    img_path = ''  # dummy
     # get start_path for search
     # get sample image to find scope and downscaling factor
     if gfp_flag:

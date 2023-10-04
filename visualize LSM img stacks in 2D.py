@@ -271,12 +271,12 @@ def img_stitcher(stage_coords, img_list):
     if findscope_flag == 2: #wil lsm, stitch horizontally
         ax0_offset = global_coords_px[:, 0] * -1  # ax0 = -Global X_DV
         ax1_offset = global_coords_px[:, 1]       # ax1 = Global Y_AP
-        ax0_offset = ax0_offset - np.min(ax0_offset) #find offset from min number
+        ax0_offset = ax0_offset - np.min(ax0_offset) #find offset from min
         ax1_offset = ax1_offset - np.min(ax1_offset)
     elif findscope_flag == 1:  # kla lsm, stitch vertically
         ax0_offset = global_coords_px[:, 1] # ax0 = Global Y_AP
         ax1_offset = global_coords_px[:, 0] # ax1 = Global X_DV
-        ax0_offset = ax0_offset - np.min(ax0_offset) #find offset from min number
+        ax0_offset = ax0_offset - np.min(ax0_offset) #find offset from min
         ax1_offset = ax1_offset - np.min(ax1_offset)
 
     ax0_max = img_height + np.max(ax0_offset)

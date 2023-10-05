@@ -209,84 +209,54 @@ zd, xd, yd = 1, 0.1625, 0.1625 #zeroth dimension is z in skimage coords
 orig_spacing = np.array([zd, xd, yd]) #change to the actual pixel spacing from the microscope
 new_spacing = np.array([zd, xd*ds_w, yd*ds_h]) #downscale x&y by n
 
+# %% [markdown]
+# **KLA**
+# Global Y_AP = stage y =  ax0
+# Global X_DV = - (stage x) = ax1
+# stitch along Y_AP - ax0
+# **WIL**
+# Global Y_AP = stage y =  ax1
+# Global X_DV = - (stage x) = -(ax0)
+# stitch along Y_AP - ax1
+
 def img_stitcher(stage_coords, img_list):
-    ''' accept a list of 2D images in img_list and use stage_coords read from notes.txt to stitch images
-        Returns: 2D np.array containing the stitched image
-    '''
-    if findscope_flag==0:
+    """accept a list of 2D images in img_list and use stage_coords read from notes.txt to stitch images
+    Returns: 2D np.array containing the stitched image
+    """
+    if findscope_flag == 0:
         print("ERROR: Couldn't find the LSM scope")
         exit()
-    elif findscope_flag==1: #call kla_stitch
-        stitched_image = kla_stitch(stage_coords, img_list)
-    elif findscope_flag==2: #call wil stitch
-        stitched_image = wil_stitch(stage_coords, img_list)
-    return(stitched_image)
-
-def wil_stitch(stage_coords, img_list): 
-    stage_origin = stage_coords[0].copy()
-    global_coords_um = stage_coords - stage_origin
-    global_coords_um[:, [1,0]] = global_coords_um[:, [0,1]]#swap x and y axis = 1st and 2nd columns
-
-    poses = np.shape(img_list)[0]
+    # poses = np.shape(img_list)[0]
     img_height = np.shape(img_list)[1]
     img_width = np.shape(img_list)[2]
-    #we only care about x and y, so get rid of last column
-    #um to pixels: 1px = (1/pixel width) um
-    # global_coords_px_xoffset = (np.ceil(global_coords_um[:, :-1] / 0.65)).astype(int) #has first img as origin
 
-    global_coords_px_xoffset1 = (np.ceil(global_coords_um[:, 0] / new_spacing[1])).astype(int) #has first img as origin - xoffset
-    global_coords_px_xoffset2 = (np.ceil(global_coords_um[:, 1] / new_spacing[2])).astype(int)
-    global_coords_px_xoffset = np.vstack((global_coords_px_xoffset1, global_coords_px_xoffset2)).T
-    
-    #stitching along x, so choose img with minimum y as the new origin 
-    y_offset_origin = np.argmin(global_coords_px_xoffset, axis=0)[1] #axis-0 is columnwise
-    global_coords_px_yoffset = global_coords_px_xoffset - global_coords_px_xoffset[y_offset_origin] #change origin to min y img
-    
-    # y is height of the image which means it is the rows in the image
-    # x is the first row in the image, y is the 2nd row
-    x_max = abs(np.amax(global_coords_px_xoffset, axis=0)[0]) + img_width #zeroth element of last list
-    y_max = abs(np.amax(global_coords_px_yoffset, axis=0)[1]) + img_height #2nd element of last list=last image y-coord
-    stitched_image = np.zeros([y_max, x_max])
-
-    for i in range(poses):
-        x0 = global_coords_px_xoffset[i, 0] #ith row and 1st column in global coords
-        y0 = global_coords_px_yoffset[i, 1] 
-        stitched_image[y0:y0+img_height, x0:x0+img_width] = img_list[i]
-    
-    return(stitched_image)
-
-def kla_stitch(stage_coords, img_list):
     stage_origin = stage_coords[0].copy()
     global_coords_um = stage_coords - stage_origin
-    global_coords_um[:, 0] = global_coords_um[:, 0] * -1 #flip x axis
-    
-    poses = np.shape(img_list)[0]
-    img_height = np.shape(img_list)[1]
-    img_width = np.shape(img_list)[2]
-    
-    #we only care about x and y, so get rid of last column
-    #um to pixels: 1px <-> 0.65um use downscaling factor
-    # global_coords_px_yoffset = (np.ceil(global_coords_um[:, :-1] / 0.65)).astype(int) #has first img as origin - yoffset
+    global_coords_um[:, 0] = global_coords_um[:, 0] * -1  # flip x axis
 
-    global_coords_px_yoffset1 = (np.ceil(global_coords_um[:, 0] / new_spacing[1])).astype(int) #has first img as origin - yoffset
-    global_coords_px_yoffset2 = (np.ceil(global_coords_um[:, 1] / new_spacing[2])).astype(int)
-    global_coords_px_yoffset = np.vstack((global_coords_px_yoffset1, global_coords_px_yoffset2)).T
+    # change global coords to px
+    global_coords_px_1 = (np.ceil(global_coords_um[:, 0] / new_spacing[1])).astype(int)
+    global_coords_px_2 = (np.ceil(global_coords_um[:, 1] / new_spacing[2])).astype(int)
+    global_coords_px = np.vstack((global_coords_px_1, global_coords_px_2)).T
     
-    #stitching along y, so choose img with minimum x to find x-offset
-    x_offset_origin = np.argmin(global_coords_px_yoffset, axis=0)[0] #axis-0 is columnwise
-    global_coords_px_xoffset = global_coords_px_yoffset - global_coords_px_yoffset[x_offset_origin] #change origin to min x img
-    
-    # y is height of the image which means it is the rows in the image
-    # x is the first row in the image, y is the 2nd row
-    x_max = abs(np.amax(global_coords_px_xoffset, axis=0)[0]) + img_width #zeroth element of last list
-    y_max = abs(np.amax(global_coords_px_yoffset, axis=0)[1]) + img_height #2nd element of last list=last image y-coord
-    stitched_image = np.zeros([y_max, x_max])
-
-    for i in range(poses):
-        x0 = global_coords_px_xoffset[i, 0] #ith row and 1st column in global coords
-        y0 = global_coords_px_yoffset[i, 1] 
-        stitched_image[y0:y0+img_height, x0:x0+img_width] = img_list[i]
+    #stitched image ax0 is going down, ax1 is to the right
+    if findscope_flag == 2: #wil lsm, stitch horizontally
+        ax0_offset = global_coords_px[:, 0] * -1  # ax0 = -Global X_DV
+        ax1_offset = global_coords_px[:, 1]       # ax1 = Global Y_AP
+        ax0_offset = ax0_offset - np.min(ax0_offset) #find offset from min number
+        ax1_offset = ax1_offset - np.min(ax1_offset)
+    elif findscope_flag == 1:  # kla lsm, stitch vertically
+        ax0_offset = global_coords_px[:, 1] # ax0 = Global Y_AP
+        ax1_offset = global_coords_px[:, 0] # ax1 = Global X_DV
+        ax0_offset = ax0_offset - np.min(ax0_offset) #find offset from min number
+        ax1_offset = ax1_offset - np.min(ax1_offset)
         
+    ax0_max = img_height + np.max(ax0_offset)
+    ax1_max = img_width + np.max(ax1_offset)
+    stitched_image = np.zeros([ax0_max, ax1_max]) #rows-height, cols-width
+
+    for i, (h0, w0) in enumerate(zip(ax0_offset, ax1_offset)):
+        stitched_image[h0 : h0 + img_height, w0 : w0 + img_width] = img_list[i]
     return(stitched_image)
 
 #read all images per timepoint then stitch and save them at dest 

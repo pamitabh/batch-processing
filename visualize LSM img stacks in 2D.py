@@ -245,7 +245,15 @@ def find_nearest_target_file(target, start_path):
         start_path = os.path.dirname(start_path)
     return found_path
 
-# %%
+# %% [markdown]
+# **KLA**
+# Global Y_AP = stage y =  ax0
+# Global X_DV = - (stage x) = ax1
+# stitch along Y_AP - ax0
+# **WIL**
+# Global Y_AP = stage y =  ax1
+# Global X_DV = - (stage x) = -(ax0)
+# stitch along Y_AP - ax1
 
 def img_stitcher(stage_coords, img_list):
     """accept a list of 2D images in img_list and use stage_coords read from notes.txt to stitch images

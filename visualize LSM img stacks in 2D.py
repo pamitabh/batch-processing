@@ -375,12 +375,10 @@ for main_dir, pos_max in zip(main_dir_list, pos_max_list):  # main_dir = locatio
 
     while True:
         if os.path.isfile(os.path.join(start_path, target1)):
-            # found
             print(f"found {target1} at:" + start_path)
             config.read(os.path.join(start_path, target1))
             break
         elif os.path.isfile(os.path.join(start_path, target2)):
-            # found
             print(f"found {target2} at:" + start_path)
             config.read(os.path.join(start_path, target2))
             break

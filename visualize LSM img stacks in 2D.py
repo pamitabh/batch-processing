@@ -394,10 +394,10 @@ for main_dir, pos_max in zip(main_dir_list, pos_max_list):  # main_dir = locatio
     abbrev = config.getfloat(f"Fish {fish_num} Region 1", "x_pos", fallback=False)
     if abbrev:
         # print('abbreviated')
-        config_prop_list = ["x_pos", "y_pos", "z_pos"]
+        config_prop_list = ["x_pos", "y_pos", "z_stack_start_pos"]
     else:
         # print('not abbreviated')
-        config_prop_list = ["x_position", "y_position", "z_position"]
+        config_prop_list = ["x_position", "y_position", "z_start_position"]
     stage_coords = np.zeros(shape=(pos_max, 3))
     for i in range(1, pos_max + 1):
         for j, val in enumerate(config_prop_list):  # x/y/z axes

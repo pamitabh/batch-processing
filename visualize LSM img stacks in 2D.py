@@ -67,9 +67,9 @@ if(action_flag!=2): #more info for stitching
         [int(input('Enter number of positions/regions of imaging per timepoint (default=4)') or "4")]
     else:
         pos_max_list = []
-        while pos_max_list != len(main_dir_list):
+        while len(pos_max_list) != len(main_dir_list):
             pos_max_list = (input('Enter the list of positions/regions separated by space in the above order')).split()
-            if pos_max_list != len(main_dir_list):
+            if len(pos_max_list) != len(main_dir_list):
                 print('entered list length is not same as the number of folders found above. Please re-enter.')
                 continue
             else:

@@ -33,7 +33,7 @@ img_ext = [
     "*.lsm",
     "*.zvi",
 ]
-# copy all files except the tiff image files
+# copy all files except the image files given by above formats
 shutil.copytree(src, new_trg_path, ignore=shutil.ignore_patterns(*img_ext))
 print(
     f"Success: Directory structure and all non-image files copied from \

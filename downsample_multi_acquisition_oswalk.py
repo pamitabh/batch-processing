@@ -61,7 +61,7 @@ def check_overflowed_stack(filename):
     return(re.match(r'\d', num))
 
 # %%
-new_folder_name = os.path.split(src)[-1] + "_downsampled"
+new_folder_name = os.path.split(src)[-1] + f"_downsampled_n{n}"
 trg_path = os.path.join(trg, new_folder_name)
 if not os.path.exists(trg_path):
     os.mkdir(trg_path)

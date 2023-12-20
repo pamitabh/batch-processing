@@ -29,7 +29,9 @@ for root, subfolders, filenames in os.walk(main_dir):
 
             if len(read_image.shape)==3: #check if 3D images
                 print(f'Processing MIP for: {filepath}')
-                arr_mip = np.max(read_image, axis=0) #create MIP
+                arr_mip_wo_bg_sub = np.max(read_image, axis=0) #create MIP
+                arr_mip = arr_mip_wo_bg_sub - np.median(arr_mip_wo_bg_sub) #subtract median
+                arr_mip[arr_mip<0] = 0 #make all negative values zero
 
                 for ch_name in channel_names: #save mip array in right directory with correct channel name
                     if ch_name.casefold() in og_name.casefold():

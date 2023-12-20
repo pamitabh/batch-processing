@@ -9,11 +9,11 @@ import re
 # %%
 # get user input for source and dest
 src, trg = '', ''
-while src==trg:
+while src==trg or src=='' or trg=='':
     src = os.path.normpath(input("Enter the Parent folder for original images: "))
     trg = os.path.normpath(input("Enter the Destination folder: "))
     if src==trg:
-        print('Source and Target cannot be same location. Re-Enter..')
+        print('Source and Target cannot be empty or the same location. Re-Enter..')
 
 # print(f"Source Dir: {src}")
 # print(f"Target Dir: {trg}")
@@ -26,7 +26,7 @@ n = (
     input("Enter downscaling factor for x and y dimensions (default=4):")
     or 4
 )
-if type(n)!=int or n<=0:
+if type(n)!=int or n<1:
     print("User Error: downscaling factor MUST be a positive integer. Exiting")
     exit()
 
@@ -101,10 +101,15 @@ def single_acquisition_downsample(acq_path, new_trg_path):
                     save_name = og_name[: -len("_MMStack")] + "_ds." + ext
                 else:
                     save_name = og_name + "_ds." + ext
-                tiff.imwrite(
-                    os.path.join(save_path, save_name),
-                    read_n_downscale_image(read_path=filepath),
-                )
+
+                if n==1: #no downscaling needed
+                    shutil.copy(src=filepath, dst=os.path.join(save_path, save_name))
+                    print(f'copied {save_name}')
+                else: #downscale
+                    tiff.imwrite(
+                        os.path.join(save_path, save_name),
+                        read_n_downscale_image(read_path=filepath),
+                    )
 # %%
 #oswalk to find all acquisition folders
 for root, subfolders, filenames in os.walk(src):

@@ -11,7 +11,11 @@ import tifffile as tiff
 
 #ask the user for the inputs
 print('Warning: This code ONLY works with single channel z-stack tiff images. It will give unpredictable results with >3 dimensions')
-main_dir = input('Enter the Parent directory where ALL the image stacks are stored: ')
+main_dir = os.path.normpath(input('Enter the Parent directory where ALL the image stacks are stored: '))
+bg_sub_flag = ''
+while bg_sub_flag!='y' or bg_sub_flag!='n':
+    bg_sub_flag = input('do you want median background subtraction? (y/n)')
+    print('enter a valid value')
 
 # Batchprocess MIP
 channel_names = ['GFP', 'RFP']
@@ -29,9 +33,12 @@ for root, subfolders, filenames in os.walk(main_dir):
 
             if len(read_image.shape)==3: #check if 3D images
                 print(f'Processing MIP for: {filepath}')
-                arr_mip_wo_bg_sub = np.max(read_image, axis=0) #create MIP
-                arr_mip = arr_mip_wo_bg_sub - np.median(arr_mip_wo_bg_sub) #subtract median
-                arr_mip[arr_mip<0] = 0 #make all negative values zero
+                if bg_sub_flag=='y':
+                    arr_mip_wo_bg_sub = np.max(read_image, axis=0) #create MIP
+                    arr_mip = arr_mip_wo_bg_sub - np.median(arr_mip_wo_bg_sub) #subtract median
+                    arr_mip[arr_mip<0] = 0 #make all negative values zero
+                else:
+                    arr_mip = np.max(read_image, axis=0) #create MIP
 
                 for ch_name in channel_names: #save mip array in right directory with correct channel name
                     if ch_name.casefold() in og_name.casefold():

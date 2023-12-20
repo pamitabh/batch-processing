@@ -79,6 +79,10 @@ if(action_flag!=2): #more info for stitching
 
 # %% [markdown]
 # # Batchprocess MIP
+def median_bg_subtraction(img_wo_bg_sub):
+    img_bg_sub = img_wo_bg_sub - np.median(img_wo_bg_sub) #subtract median
+    img_bg_sub[img_bg_sub<0] = 0 #make all negative values zero
+    return(img_bg_sub)
 
 def check_overflowed_stack(filename):
     '''return True if the 'filename' is a overflowed_stack else False'''
@@ -98,13 +102,15 @@ def batchprocess_mip(main_dir):
             filename_list = filename.split('.')
             og_name = filename_list[0] #first of list=name
             ext = filename_list[-1] #last of list=extension
-            os.listdir
 
             if (ext=="tif" or ext=="tiff") and (not check_overflowed_stack(og_name)):#(og_name.endswith('_MMStack_1') or (og_name.endswith('_MMStack_1_ds')))): #tiff files which are not spilled-over stacks
                 read_image = tiff.imread(filepath)
 
                 if len(read_image.shape)==3: #check if 3D images
+                    print(f'Processing MIP for: {filepath}')
                     arr_mip = np.max(read_image, axis=0) #create MIP
+                    # arr_mip_wo_bg_sub = np.max(read_image, axis=0) #create MIP
+                    # arr_mip = median_bg_subtraction(arr_mip_wo_bg_sub)
 
                     for ch_name in channel_names: #save mip array in right directory with correct channel name
                         if ch_name.casefold() in og_name.casefold():
@@ -120,7 +126,6 @@ def batchprocess_mip(main_dir):
                                 save_name = og_name[:-len('_MMStack')]+'_mip.'+ext
                             else:
                                 save_name = og_name+'_mip.'+ext
-                            print(f'Processing MIP for: {filepath}')
                             tiff.imwrite(os.path.join(dest, save_name), img_mip)
 # %%
 if action_flag!=3:
@@ -291,8 +296,14 @@ def img_stitcher(stage_coords, img_list):
     ax1_max = img_width + np.max(ax1_offset)
     stitched_image = np.zeros([ax0_max, ax1_max]) #rows-height, cols-width
 
+    #bg subtract all images to be stitched
+    img_list_bg_sub = []
+    for img in img_list:
+        img_list_bg_sub.append(median_bg_subtraction(img))
+
+    #stitch images
     for i, (h0, w0) in enumerate(zip(ax0_offset, ax1_offset)):
-        stitched_image[h0:h0 + img_height, w0:w0 + img_width] = img_list[i]
+        stitched_image[h0:h0 + img_height, w0:w0 + img_width] = img_list_bg_sub[i]
     return(stitched_image)
 
 # %%
@@ -422,13 +433,12 @@ for main_dir, pos_max in zip(main_dir_list, pos_max_list):  # main_dir = locatio
 
         if ch_flag:
             print(f"Stitching {ch_name} images...")
-            save_path = os.path.join(
-                ch_path_list[k], ch_name.casefold() + "_stitched"
-            )
+            dir_name = f'{ch_name.casefold()}_bgsub_stitched'
+            save_path = os.path.join(ch_path_list[k], dir_name)
             if not os.path.exists(save_path):  # check if the dest exists
                 print("Save path doesn't exist.")
                 os.makedirs(save_path)
-                print(f"Directory '{ch_name.casefold()}_stitched' created")
+                print(f"Directory '{dir_name}' created")
             else:
                 print("Save path exists")
 

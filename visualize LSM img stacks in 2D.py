@@ -205,6 +205,15 @@ def find_lsm_scope(img_h, img_w):
 
 # %%
 # Helping functions
+# check and create path
+def check_create_save_path(save_path):
+    save_path = os.path.normpath(save_path)
+    if not os.path.exists(save_path):  # check if the dest exists
+        print("Save path doesn't exist.")
+        os.makedirs(save_path)
+        print(f"Directory '{os.path.basename(save_path)}' created")
+    else:
+        print("Save path exists")
 # removes dir and non-image(tiff) files from a list
 def remove_non_image_files(big_list, root_path):
     small_list = []
@@ -295,6 +304,7 @@ def img_stitcher(stage_coords, img_list):
     ax0_max = img_height + np.max(ax0_offset)
     ax1_max = img_width + np.max(ax1_offset)
     stitched_image = np.zeros([ax0_max, ax1_max]) #rows-height, cols-width
+    stitched_image_bg_sub = np.zeros_like(stitched_image)
 
     #bg subtract all images to be stitched
     img_list_bg_sub = []
@@ -303,8 +313,9 @@ def img_stitcher(stage_coords, img_list):
 
     #stitch images
     for i, (h0, w0) in enumerate(zip(ax0_offset, ax1_offset)):
-        stitched_image[h0:h0 + img_height, w0:w0 + img_width] = img_list_bg_sub[i]
-    return(stitched_image)
+        stitched_image[h0:h0 + img_height, w0:w0 + img_width] = img_list[i]
+        stitched_image_bg_sub[h0:h0 + img_height, w0:w0 + img_width] = img_list_bg_sub[i]
+    return(stitched_image, stitched_image_bg_sub)
 
 # %%
 sub_names = ["BF", "GFP_mip", "RFP_mip"]
@@ -433,14 +444,10 @@ for main_dir, pos_max in zip(main_dir_list, pos_max_list):  # main_dir = locatio
 
         if ch_flag:
             print(f"Stitching {ch_name} images...")
-            dir_name = f'{ch_name.casefold()}_bgsub_stitched'
-            save_path = os.path.join(ch_path_list[k], dir_name)
-            if not os.path.exists(save_path):  # check if the dest exists
-                print("Save path doesn't exist.")
-                os.makedirs(save_path)
-                print(f"Directory '{dir_name}' created")
-            else:
-                print("Save path exists")
+            save_path = os.path.join(ch_path_list[k], f'{ch_name.casefold()}_stitched')
+            save_path_bgsub = os.path.join(ch_path_list[k], f'{ch_name.casefold()}_bgsub_stitched')
+            check_create_save_path(save_path)
+            check_create_save_path(save_path_bgsub)
 
             for i in tqdm(
                 range(len(all_img_list) // pos_max)
@@ -454,7 +461,7 @@ for main_dir, pos_max in zip(main_dir_list, pos_max_list):  # main_dir = locatio
                         os.path.join(ch_path_list[k], all_img_list[loc])
                     )  # save all pos images in 3D array
 
-                stitched_img = img_stitcher(stage_coords, img_list_per_tp)
+                stitched_img, stitched_img_bg_sub = img_stitcher(stage_coords, img_list_per_tp)
                 stitched_img_uint = skimage.util.img_as_uint(
                     skimage.exposure.rescale_intensity(stitched_img)
                 )  # rescale float and change dtype to uint16
@@ -462,4 +469,13 @@ for main_dir, pos_max in zip(main_dir_list, pos_max_list):  # main_dir = locatio
                     os.path.join(save_path, f"Timepoint{i+1}_{ch_name}_stitched.png"),
                     stitched_img_uint,
                     check_contrast=False,
-                )  # save the image
+                )  # save the stitched image
+
+                stitched_img_uint_bgsub = skimage.util.img_as_uint(
+                    skimage.exposure.rescale_intensity(stitched_img_bg_sub)
+                )  # rescale float and change dtype to uint16
+                skimage.io.imsave(
+                    os.path.join(save_path_bgsub, f"Timepoint{i+1}_{ch_name}_stitched.png"),
+                    stitched_img_uint_bgsub,
+                    check_contrast=False,
+                )  # save the bg subtracted stitched image

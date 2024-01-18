@@ -22,16 +22,13 @@ while src==trg or src=='' or trg=='':
 #     exit()
 
 # n is the downscaling factor in x and y, change it accordingly.
-n = (
-    input("Enter downscaling factor for x and y dimensions (default=4):")
-    or 4
-)
-if type(n)!=int or n<1:
+n = int(input("Enter downscaling factor for x and y dimensions (default=4):") or '4')
+if n<1:
     print("User Error: downscaling factor MUST be a positive integer. Exiting")
     exit()
 
 # single_fish_flag is used to find if single acquisitions have single fish or not
-single_fish_flag = input("Is there ONLY 1 fish per Acquisition? (y-default/n):") or "y"
+single_fish_flag = input("Is there ONLY 1 fish per Acquisition? ([y]/n):") or "y"
 if single_fish_flag.casefold() not in ('y', 'n'):
     print("User Error: Need to enter 'y' or 'n'. Exiting")
     exit()

@@ -31,7 +31,13 @@ for root, subfolders, _ in os.walk(top_dir):
 main_dir_list = natsorted(main_dir_list)
 print(f'Found these fish data:\n{main_dir_list}')
 
-bg_sub_flag = (input('Do you want to subtract background? ([y]/n)') or 'y') == 'y'
+diff_savedir_flag = (input('Do you want to save the images in a different folder? (y/[n])') or 'n').casefold()=='y'
+if diff_savedir_flag:
+    print('''You have chosen to save stitched images in a different directory, 
+          give ONE fish folder at a time to prevent overwriting.''')
+    save_dir = os.path.normpath(input('Enter the save dir: '))
+
+bg_sub_flag = (input('Do you want to subtract background? ([y]/n)') or 'y').casefold() == 'y'
 pos_input_flag = input('Is the number of pos/regions in each folder above the same? ([y]/n)') or 'y'
 if pos_input_flag.casefold()=='n':
     print('Error: Not implemented yet. This only works if the number of pos/regions in each folder is the same.')
@@ -64,7 +70,10 @@ for main_dir in main_dir_list:  # main_dir = location of Directory containing ON
         if ch_3Dimg_flag:
             pos_max = bpf.pos_max
             print(f"Stitching {ch_name} 3D images...")
-            save_path = os.path.join(ch_3Dimg_path, f'{ch_name.casefold()}_zstack_stitched')
+            if diff_savedir_flag:
+                save_path = os.path.join(save_dir, f'{ch_name.casefold()}_zstack_stitched')
+            else:
+                save_path = os.path.join(ch_3Dimg_path, f'{ch_name.casefold()}_zstack_stitched')
             bpf.check_create_save_path(save_path)
 
             for i in tqdm(range(len(ch_3Dimg_list)//pos_max)):  # run once per timepoint

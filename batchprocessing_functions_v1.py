@@ -89,14 +89,14 @@ def find_3D_images(main_dir, ofc_flag=False):
             filename_list = filename.split('.')
             og_name = (filename_list[0]).casefold() #first of list=name
             ext = (filename_list[-1]).casefold() #last of list=extension
-            if (ext == "tif" or ext == "tiff") and not(rfp_flag or gfp_flag): #just need one sample image
+            if (ext == "tif" or ext == "tiff"):
                 if ("bf" not in og_name) and ("mip" not in og_name): #ignore BF and MIP
-                    if "gfp" in og_name:  # find GFP
+                    if ("gfp" in og_name) and (not gfp_flag):  # find GFP
                         print("GFP images found at:" + root)
                         gfp_path = root
                         gfp_img_list = reorder_files_by_pos_tp(remove_non_image_files(natsorted(os.listdir(root)), root))
                         gfp_flag = True
-                    elif "rfp" in og_name:  # find RFP
+                    elif ("rfp" in og_name) and (not rfp_flag):  # find RFP
                         print("RFP images found at:" + root)
                         rfp_path = root
                         rfp_img_list = reorder_files_by_pos_tp(remove_non_image_files(natsorted(os.listdir(root)), root))
@@ -385,7 +385,7 @@ def img_stitcher_3D(global_coords_px, img_list, bg_sub=True):
     ax0_max = img_height + np.max(ax0_offset)
     ax1_max = img_width + np.max(ax1_offset)
     z_max = np.max(z_width) + np.max(z_offset)
-    print(f'ax0_max: {ax0_max}, ax1_max: {ax1_max}, z_max: {z_max}')
+    # print(f'ax0_max: {ax0_max}, ax1_max: {ax1_max}, z_max: {z_max}')
 
     #create empty stitched image
     stitched_image = np.zeros([z_max, ax0_max, ax1_max], dtype=np.uint16) #plane - z, rows-height, cols-width

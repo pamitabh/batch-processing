@@ -10,7 +10,6 @@
 import os
 import tifffile as tiff
 from natsort import natsorted
-
 from tqdm import tqdm
 import re
 
@@ -21,7 +20,7 @@ print('''Instructions for stitching:
     - Images MUST have:
         a. 'timepoint' substring in their names
         b. 'pos' or 'region' substring in their names
-        c. channel substring(BF/GFP/RFP) in their names''')
+        c. channel substring(GFP/RFP) in their names''')
 top_dir = os.path.normpath(input('Enter the top directory with ALL acquisitions: '))
 
 #all unique GFP/RFP location gets added to the main_dir_list
@@ -32,10 +31,8 @@ for root, subfolders, _ in os.walk(top_dir):
 main_dir_list = natsorted(main_dir_list)
 print(f'Found these fish data:\n{main_dir_list}')
 
-bg_sub_flag = input('Do you want to subtract background? ([y]/n)') or 'y'
-
+bg_sub_flag = (input('Do you want to subtract background? ([y]/n)') or 'y') == 'y'
 pos_input_flag = input('Is the number of pos/regions in each folder above the same? ([y]/n)') or 'y'
-
 if pos_input_flag.casefold()=='n':
     print('Error: Not implemented yet. This only works if the number of pos/regions in each folder is the same.')
     exit()
@@ -56,7 +53,7 @@ if pos_input_flag.casefold()=='n':
 
 ch_names = ['GFP', 'RFP']
 
-for main_dir in zip(main_dir_list):  # main_dir = location of Directory containing ONE fish data
+for main_dir in main_dir_list:  # main_dir = location of Directory containing ONE fish data
     print(f"Processing {main_dir}...")
     ch_3Dimg_flags, ch_3Dimg_paths, ch_3Dimg_lists = bpf.find_3D_images(main_dir)
     stage_coords = bpf.find_stage_coords_n_pixel_width_from_3D_images(ch_3Dimg_flags, ch_3Dimg_paths, ch_3Dimg_lists)
@@ -78,7 +75,7 @@ for main_dir in zip(main_dir_list):  # main_dir = location of Directory containi
                     loc = i * pos_max + j
                     # print(loc)
                     # save all pos images in a list
-                    img = tiff.imread(os.path.join(ch_3Dimg_path[k], ch_3Dimg_list[loc]))
+                    img = tiff.imread(os.path.join(ch_3Dimg_path, ch_3Dimg_list[loc]))
                     if len(img.shape)!=3:
                         print(f'{ch_3Dimg_list[loc]}: Image shape is not 3D... something is wrong. exiting...')
                         exit()
@@ -87,7 +84,7 @@ for main_dir in zip(main_dir_list):  # main_dir = location of Directory containi
                 
                 stitched_image = bpf.img_stitcher_3D(global_coords_px, img_list_per_tp, bg_sub_flag)
 
-                if bg_sub_flag.casefold() == 'y':
+                if bg_sub_flag:
                     save_name = f"Timepoint{i+1}_{ch_name}_stitched_zstack_bg_sub.tif"
                 else:
                     save_name = f"Timepoint{i+1}_{ch_name}_stitched_zstack.tif"

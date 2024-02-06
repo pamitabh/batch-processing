@@ -48,9 +48,7 @@ def read_n_downscale_image(read_path):
         print("Can't process images with >3dimensions")
         return None
     
-    return skimage.util.img_as_uint(
-        skimage.exposure.rescale_intensity(img_downscaled)
-        )
+    return skimage.util.img_as_uint(skimage.exposure.rescale_intensity(img_downscaled))
 
 def check_overflowed_stack(filename):
     '''return True if the 'filename' is a overflowed_stack else False'''

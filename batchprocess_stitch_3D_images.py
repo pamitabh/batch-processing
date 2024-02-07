@@ -11,7 +11,6 @@ import os
 import tifffile as tiff
 from natsort import natsorted
 from tqdm import tqdm
-import re
 
 import batchprocessing_functions_v1 as bpf
 

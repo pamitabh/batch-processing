@@ -15,19 +15,12 @@
 #
 # Detail: now this works with multi folder/multi acquisition
 
-import configparser
-
 import os
-import re
 
 import batchprocessing_functions_v2 as bpf
-import numpy as np
-
 import skimage
-
 import tifffile as tiff
 from natsort import natsorted
-
 from tqdm import tqdm
 
 # import pandas as pd

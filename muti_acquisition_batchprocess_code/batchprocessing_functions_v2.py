@@ -151,6 +151,7 @@ def single_acquisition_downsample(acq_path, new_trg_path, single_fish_flag, n):
                         read_n_downscale_image(read_path=filepath),
                     )
 
+
 def find_2D_images(main_dir):
     # make a list of all 2D img files by channel
     bf_flag, gfp_flag, rfp_flag = False, False, False  # 0 means not found, 1 mean found
@@ -159,7 +160,7 @@ def find_2D_images(main_dir):
 
     for root, subfolders, filenames in os.walk(main_dir):
         for filename in filenames:
-            filepath = os.path.join(root, filename)
+            # filepath = os.path.join(root, filename)
             # print(f'Reading: {filepath}')
             filename_list = filename.split(".")
             og_name = filename_list[0]  # first of list=name
@@ -169,9 +170,7 @@ def find_2D_images(main_dir):
                 if (not bf_flag) and ("bf" in og_name.casefold()):  # find BF
                     print("BF images found at:" + root)
                     bf_path = root
-                    bf_img_list = reorder_files_by_pos_tp(
-                        remove_non_image_files(natsorted(os.listdir(root)), root)
-                        )
+                    bf_img_list = reorder_files_by_pos_tp(remove_non_image_files(natsorted(os.listdir(root)), root))
                     bf_flag = True
                 elif "mip" in og_name.casefold():
                     if (not gfp_flag) and ("gfp" in og_name.casefold()):
@@ -179,14 +178,14 @@ def find_2D_images(main_dir):
                         gfp_mip_path = root
                         gfp_img_list = reorder_files_by_pos_tp(
                             remove_non_image_files(natsorted(os.listdir(root)), root)
-                            )
+                        )
                         gfp_flag = True
                     elif (not rfp_flag) and ("rfp" in og_name.casefold()):
                         print("RFP MIP images found at:" + root)
                         rfp_mip_path = root
                         rfp_img_list = reorder_files_by_pos_tp(
                             remove_non_image_files(natsorted(os.listdir(root)), root)
-                            )
+                        )
                         rfp_flag = True
     if not bf_flag:
         print(f"No BF images found in {main_dir}")
@@ -198,11 +197,12 @@ def find_2D_images(main_dir):
     if not (bf_flag or gfp_flag or rfp_flag):
         print(f"No images found in {main_dir}. Exiting...")
         exit()
-    return(
-        [bf_flag, gfp_flag, rfp_flag], 
-        [bf_path, gfp_mip_path, rfp_mip_path], 
-        [bf_img_list, gfp_img_list, rfp_img_list])
+    return (
+        [bf_flag, gfp_flag, rfp_flag],
+        [bf_path, gfp_mip_path, rfp_mip_path],
+        [bf_img_list, gfp_img_list, rfp_img_list],
     )
+
 
 def find_3D_images(main_dir):
     # very general and robust code which looks for the files with those names instead of depending upon just the folder names
@@ -497,6 +497,7 @@ def check_overflowed_stack(filename):
     num = filename[filename.casefold().rfind("mmstack_") + len("mmstack_")]
     return re.match(r"\d", num)
 
+
 def oswalk_batchprocess_mip(main_dir):
     """Uses oswalk to find all 3D images in main_dir and create MIPs for GFP and RFP channels."""
     print("Finding Max Intensity Projections...")
@@ -592,7 +593,7 @@ def img_stitcher_3D(global_coords_px, img_list, bg_sub=True):
     if findscope_flag == 0:
         print("ERROR: Couldn't find the LSM scope")
         exit()
-    og_datatype = img_list[0].dtype
+    # og_datatype = img_list[0].dtype
     img_height = np.shape(img_list[0])[1]
     img_width = np.shape(img_list[0])[2]
     z_width = [np.shape(img_list[i])[0] for i in range(pos_max)]

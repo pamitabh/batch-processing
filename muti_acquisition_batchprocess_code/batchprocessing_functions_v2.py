@@ -117,7 +117,7 @@ def single_acquisition_downsample(acq_path, new_trg_path, single_fish_flag, n):
         if ext == "txt":  # copy text files
             shutil.copy(os.path.join(acq_path, filename), new_trg_path)
             print(f"copied file: {filename}")
-        elif single_fish_flag.casefold() == "n":  # make fish num folders
+        elif not single_fish_flag:  # make fish num folders
             os.mkdir(os.path.join(new_trg_path, filename))
             print(f"made dir: {filename}")
 
@@ -131,7 +131,7 @@ def single_acquisition_downsample(acq_path, new_trg_path, single_fish_flag, n):
             if (ext == "tif" or ext == "tiff") and (
                 not check_overflowed_stack(og_name)
             ):  # only compress tiff files, ignore spill-over stack
-                if single_fish_flag.casefold() == "n":  # save the ds images in fish folder
+                if not single_fish_flag:  # save the ds images in fish folder
                     fish_num = og_name[og_name.casefold().find("fish") + len("fish")]
                     save_path = os.path.join(new_trg_path, "fish" + str(fish_num))
                 else:
@@ -148,7 +148,7 @@ def single_acquisition_downsample(acq_path, new_trg_path, single_fish_flag, n):
                 else:  # downscale
                     tiff.imwrite(
                         os.path.join(save_path, save_name),
-                        read_n_downscale_image(read_path=filepath),
+                        read_n_downscale_image(read_path=filepath, n=n),
                     )
 
 

@@ -85,7 +85,7 @@ if action_flag != 2:  # more info for stitching
 
 # %%
 if action_flag != 3:
-    bpf.batchprocess_mip(main_dir=top_dir)
+    bpf.oswalk_batchprocess_mip(main_dir=top_dir)
 
 # # Stitching
 if action_flag == 2:  # don't stitch and exit

@@ -1,155 +1,99 @@
 from pathlib import Path
 import shutil
 import os
-import numpy as np
-import skimage
-import tifffile as tiff
-import re
+
+# import numpy as np
+# import skimage
+# import tifffile as tiff
+# import re
+import batchprocessing_functions_v2 as bpf
+
+# %%
+action_flag = 0
+while action_flag == 0:
+    print("Downsample all tiff images inside acquisition folder by n, enter n=1 for simple copy")
+    print("Sort images ONLY if the original filename has the channel name(BF/GFP/RFP)")
+    action_flag = int(
+        input(
+            """Do you want to:
+                        1. Downsample and sort images by channel (default)
+                        2. Only Downsample images
+                        3. Only Sort images by channel\n"""
+        )
+        or "1"
+    )
+    if action_flag == 1 or action_flag == 2 or action_flag == 3:
+        break
+    else:
+        action_flag = 0
+        print("Invalid value: Re-Enter")
 
 # %%
 # get user input for source and dest
-src, trg = '', ''
-while src==trg or src=='' or trg=='':
+src, trg = "", ""
+while src == trg or src == "" or trg == "":
     src = os.path.normpath(input("Enter the Parent folder for original images: "))
     trg = os.path.normpath(input("Enter the Destination folder: "))
-    if src==trg:
-        print('Source and Target cannot be empty or the same location. Re-Enter..')
-
-# print(f"Source Dir: {src}")
-# print(f"Target Dir: {trg}")
-# flag = input("Continue? (y/n):")
-# if flag.casefold() != "y":
-#     exit()
+    if src == trg:
+        print("Source and Target cannot be empty or the same location. Re-Enter..")
 
 # n is the downscaling factor in x and y, change it accordingly.
-n = int(input("Enter downscaling factor for x and y dimensions (default=4):") or '4')
-if n<1:
+n = int(input("Enter downscaling factor for x and y dimensions (default=4):") or "4")
+if n < 1:
     print("User Error: downscaling factor MUST be a positive integer. Exiting")
     exit()
 
 # single_fish_flag is used to find if single acquisitions have single fish or not
-single_fish_flag = input("Is there ONLY 1 fish per Acquisition? ([y]/n):") or "y"
-if single_fish_flag.casefold() not in ('y', 'n'):
+single_fish_input = input("Is there ONLY 1 fish per Acquisition? ([y]/n):") or "y"
+if single_fish_input.casefold() not in ("y", "n"):
     print("User Error: Need to enter 'y' or 'n'. Exiting")
     exit()
+single_fish_flag = True if single_fish_input.casefold() == "y" else False
 
 # %%
-def read_n_downscale_image(read_path):
-    print(f"Reading: {read_path}")
-    img = tiff.imread(read_path)
-    print(f"Shape of read image {img.shape}")
-    if len(img.shape) == 2:  # 2 dimensional image, e.g. BF image
-        # use a kernel of nxn, ds by a factor of n in x & y
-        img_downscaled = skimage.transform.downscale_local_mean(img, (n, n))
-    elif len(img.shape) == 3:  # image zstack
-        # use a kernel of 1xnxn, no ds in z
-        img_downscaled = skimage.transform.downscale_local_mean(img, (1, n, n))
-    else:
-        print("Can't process images with >3dimensions")
-        return None
-    
-    return skimage.util.img_as_uint(skimage.exposure.rescale_intensity(img_downscaled))
-
-def check_overflowed_stack(filename):
-    '''return True if the 'filename' is a overflowed_stack else False'''
-    num = filename[filename.casefold().rfind("mmstack_") + len("mmstack_")]
-    return(re.match(r'\d', num))
-
-# %%
-new_folder_name = os.path.split(src)[-1] + f"_downsampled_n{n}"
+new_folder_name = f"{os.path.split(src)[-1]}_downsampled_n{n}"
 trg_path = os.path.join(trg, new_folder_name)
-if not os.path.exists(trg_path):
-    os.mkdir(trg_path)
-    print(f"Made dir: {trg_path}")
+bpf.check_create_save_path(trg_path)
 
 # %%
-def single_acquisition_downsample(acq_path, new_trg_path):
-# Assuming the acq_path has the acquisition dir:
-# acq_path = Acquisition dir -> {fish1 dir, fish2 dir, etc.} + notes.txt
-    files = os.listdir(acq_path)
-    for filename in files:
-        filename_list = filename.split(".")
-        og_name = filename_list[0]  #first of list=name
-        ext = filename_list[-1]  #last of list=extension
-        if ext == "txt":  #copy text files
-            shutil.copy(os.path.join(acq_path, filename), new_trg_path)
-            print(f"copied file: {filename}")
-        elif(single_fish_flag.casefold()=='n'):  #make fish num folders
-            os.mkdir(os.path.join(new_trg_path, filename))
-            print(f"made dir: {filename}")
+if action_flag != 3:  # Downsample
+    print("Downsampling images..")
+    # oswalk to find all acquisition folders
+    for root, subfolders, filenames in os.walk(src):
+        # print(subfolders)
+        for sub in subfolders:  # separate by acquisitions
+            if "acquisition" in sub.casefold():
+                single_acq_path = os.path.join(root, sub)
+                single_trg_path = root.replace(src, trg_path)
 
-    for root, subfolders, filenames in os.walk(acq_path):
+                # copy entire folder structure
+                path = Path(single_trg_path)
+                path.mkdir(parents=True, exist_ok=True)
+
+                bpf.single_acquisition_downsample(single_acq_path, single_trg_path, single_fish_flag, n)
+
+if action_flag != 2:  # Sort by channel
+    print("Sorting images by channel..")
+    # sort images by channel
+    sub_dirs = ["BF", "GFP", "RFP"]
+    read_dir = trg_path
+
+    for root, subfolders, filenames in os.walk(read_dir):
         for filename in filenames:
             filepath = os.path.join(root, filename)
+            # print(f'Reading: {filepath}')
             filename_list = filename.split(".")
             og_name = filename_list[0]  # first of list=name
             ext = filename_list[-1]  # last of list=extension
 
-            if (ext=="tif" or ext=="tiff") and (not check_overflowed_stack(og_name)): # only compress tiff files, ignore spill-over stack
-                if single_fish_flag.casefold()=='n':  # save the ds images in fish folder
-                    fish_num = og_name[og_name.casefold().find("fish") + len("fish")]
-                    save_path = os.path.join(new_trg_path, "fish" + str(fish_num))
-                else:
-                    save_path = new_trg_path
-
-                if og_name.endswith("_MMStack"):  # remove 'MMStack' in saved name
-                    save_name = og_name[: -len("_MMStack")] + "_ds." + ext
-                else:
-                    save_name = og_name + "_ds." + ext
-
-                if n==1: #no downscaling needed
-                    shutil.copy(src=filepath, dst=os.path.join(save_path, save_name))
-                    print(f'copied {save_name}')
-                else: #downscale
-                    tiff.imwrite(
-                        os.path.join(save_path, save_name),
-                        read_n_downscale_image(read_path=filepath),
-                    )
-# %%
-#oswalk to find all acquisition folders
-for root, subfolders, filenames in os.walk(src):
-    # print(subfolders)
-    for sub in subfolders: #separate by acquisitions
-        if 'acquisition' in sub.casefold(): 
-            single_acq_path = os.path.join(root,sub)
-            single_trg_path = root.replace(src, trg_path)
-
-            #copy entire folder structure
-            path = Path(single_trg_path)
-            path.mkdir(parents=True, exist_ok=True)
-
-            single_acquisition_downsample(single_acq_path, single_trg_path)
-
-
-#this code will only work to sort images if the filename has the channel name(BF/GFP/RFP)
-
-sub_dirs = ['BF', 'GFP', 'RFP']
-print('This code will sort images ONLY if the filename has the channel name(BF/GFP/RFP)')
-flag = input('Sort Images into different directories by channel? (y/n)')
-if flag.casefold().startswith("y"):
-    print("ok, creating directories and sorting images..")
-else:
-    print('Okay, bye!')
-    exit()
-
-read_dir = input('Enter the Root directory containing ALL images to be sorted: ')
-
-for root, subfolders, filenames in os.walk(read_dir):
-    for filename in filenames:        
-        filepath = os.path.join(root, filename)
-        # print(f'Reading: {filepath}')
-        filename_list = filename.split('.')
-        og_name = filename_list[0] #first of list=name
-        ext = filename_list[-1] #last of list=extension
-
-        if ext=="tif" or ext=="tiff": #only if tiff file
-            #check image channel and create directory if it doesn't exist
-            for sub in sub_dirs:
-                if sub.casefold() in og_name.casefold():
-                    dest = os.path.join(root, sub)
-                    if not os.path.exists(dest): #check if the subdir exists
-                        print("New path doesn't exist.")
-                        os.makedirs(dest)
-                        print(f"Directory '{sub}' created")
-
-                    shutil.move(filepath, dest) #move files
+            if ext == "tif" or ext == "tiff":  # only if tiff file
+                # check image channel and create directory if it doesn't exist
+                for sub in sub_dirs:
+                    if sub.casefold() in og_name.casefold():
+                        dest = os.path.join(root, sub)
+                        if not os.path.exists(dest):  # check if the subdir exists
+                            print("New path doesn't exist.")
+                            os.makedirs(dest)
+                            print(f"Directory '{sub}' created")
+                        shutil.move(filepath, dest)  # move files
+print("Successfully completed all tasks!")

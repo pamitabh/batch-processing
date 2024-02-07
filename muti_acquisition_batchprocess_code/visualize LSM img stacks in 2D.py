@@ -1,10 +1,10 @@
 # %% [markdown]
 # Author(s): Piyush Amitabh
-# 
+#
 # Details: this code generates mip and stitches them to visualize the img stacks
-# 
+#
 # Created: May 02, 2023
-# 
+#
 # License: GNU GPL v3.0
 
 # %% [markdown]
@@ -12,470 +12,143 @@
 
 # %% [markdown]
 # Updated: 29 Sep, 23
-# 
+#
 # Detail: now this works with multi folder/multi acquisition
 
-# %%
-import os
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
+import configparser
 
-# %%
+import os
+import re
+
+import batchprocessing_functions_v2 as bpf
+import numpy as np
+
 import skimage
-from PIL import Image
+
 import tifffile as tiff
 from natsort import natsorted
 
-# %%
 from tqdm import tqdm
-import configparser
-import re
 
-# %%
-top_dir = os.path.normpath(input('Enter the top directory with ALL acquisitions: '))
+# import pandas as pd
+# import matplotlib.pyplot as plt
+
+top_dir = os.path.normpath(input("Enter the top directory with ALL acquisitions: "))
 action_flag = 0
 
-while action_flag==0:
-    action_flag = int(input('''Do you want to:
+while action_flag == 0:
+    action_flag = int(
+        input(
+            """Do you want to:
                         1. Find Max Intensity Projection AND Stitch (default)
                         2. Only find Max Intensity Projection
-                        3. Only Stitch\n''') or '1')
-    if action_flag ==1 or action_flag==2 or action_flag==3:
+                        3. Only Stitch\n"""
+        )
+        or "1"
+    )
+    if action_flag == 1 or action_flag == 2 or action_flag == 3:
         break
     else:
-        action_flag=0
-        print('Invalid value: Re-Enter')
+        action_flag = 0
+        print("Invalid value: Re-Enter")
 
-if(action_flag!=2): #more info for stitching
-    print('''Instructions for stitching:
+if action_flag != 2:  # more info for stitching
+    print(
+        """Instructions for stitching:
         - Image stitching works by reading stage positions from the 'notes.txt' file generated during acquisition
         - Images MUST have:
-          a. 'timepoint' substring in their names
-          b. 'pos' or 'region' substring in their names
-          c. channel substring(BF/GFP/RFP) in their names''')
-    
-    # all unique BF location gets added to the main_dir_list
-    main_dir_list = []
-    for root, subfolders, _ in os.walk(top_dir):
-        if "BF" in subfolders:
-            main_dir_list.append(root)
-    print(f'Found these fish data:\n{main_dir_list}')
-    pos_input_flag = input('Is the number of pos/regions in each folder above the same? (y-default/n)') or 'y'
-    if pos_input_flag.casefold()=='y':
-        pos_max_list = len(main_dir_list)* \
-        [int(input('Enter number of positions/regions of imaging per timepoint (default=4)') or "4")]
-    else:
-        pos_max_list = []
-        while len(pos_max_list) != len(main_dir_list):
-            pos_max_list = (input('Enter the list of positions/regions separated by space in the above order')).split()
-            if len(pos_max_list) != len(main_dir_list):
-                print('entered list length is not same as the number of folders found above. Please re-enter.')
-                continue
-            else:
-                # convert each item to int type
-                for i in range(len(pos_max_list)):
-                    pos_max_list[i] = int(pos_max_list[i])
+            a. 'timepoint' substring in their names
+            b. 'pos' or 'region' substring in their names
+            c. channel substring(BF/GFP/RFP) in their names"""
+    )
 
-# %% [markdown]
-# # Batchprocess MIP
-def median_bg_subtraction(img_wo_bg_sub):
-    img_bg_sub = img_wo_bg_sub - np.median(img_wo_bg_sub) #subtract median
-    img_bg_sub[img_bg_sub<0] = 0 #make all negative values zero
-    return(img_bg_sub)
+    user_check = input("Do you want to continue? (y/[n])") or "n"
+    if user_check.casefold() == "n":
+        print("Okay, bye!")
+        exit()
 
-def check_overflowed_stack(filename):
-    '''return True if the 'filename' is a overflowed_stack else False'''
-    num = filename[filename.casefold().rfind("mmstack_") + len("mmstack_")]
-    return(re.match(r'\d', num))
+#     # all unique BF location gets added to the main_dir_list
+#     main_dir_list = []
+#     for root, subfolders, _ in os.walk(top_dir):
+#         if "BF" in subfolders:
+#             main_dir_list.append(root)
+#     print(f"Found these fish data:\n{main_dir_list}")
+#     pos_input_flag = input("Is the number of pos/regions in each folder above the same? (y-default/n)") or "y"
+#     if pos_input_flag.casefold() == "y":
+#         pos_max_list = len(main_dir_list) * [
+#             int(input("Enter number of positions/regions of imaging per timepoint (default=4)") or "4")
+#         ]
+#     else:
+#         pos_max_list = []
+#         while len(pos_max_list) != len(main_dir_list):
+#             pos_max_list = (input("Enter the list of positions/regions separated by space in the above order")).split()
+#             if len(pos_max_list) != len(main_dir_list):
+#                 print("entered list length is not same as the number of folders found above. Please re-enter.")
+#                 continue
+#             else:
+#                 # convert each item to int type
+#                 for i in range(len(pos_max_list)):
+#                     pos_max_list[i] = int(pos_max_list[i])
 
 # %%
-def batchprocess_mip(main_dir):
-    print('Finding Max Intensity Projections...')
-    print('Warning: This code ONLY works with single channel z-stack tiff images. It will give unpredictable results with >3 dimensions')
-    channel_names = ['GFP', 'RFP']
-    for root, subfolders, filenames in os.walk(main_dir):
-        for filename in filenames:
-            # print(f'Reading: {filename}')
-            filepath = os.path.join(root, filename)
-            # print(f'Reading: {filepath}')
-            filename_list = filename.split('.')
-            og_name = filename_list[0] #first of list=name
-            ext = filename_list[-1] #last of list=extension
+if action_flag != 3:
+    bpf.batchprocess_mip(main_dir=top_dir)
 
-            if (ext=="tif" or ext=="tiff") and (not check_overflowed_stack(og_name)):#(og_name.endswith('_MMStack_1') or (og_name.endswith('_MMStack_1_ds')))): #tiff files which are not spilled-over stacks
-                read_image = tiff.imread(filepath)
-
-                if len(read_image.shape)==3: #check if 3D images
-                    print(f'Processing MIP for: {filepath}')
-                    arr_mip = np.max(read_image, axis=0) #create MIP
-                    # arr_mip_wo_bg_sub = np.max(read_image, axis=0) #create MIP
-                    # arr_mip = median_bg_subtraction(arr_mip_wo_bg_sub)
-
-                    for ch_name in channel_names: #save mip array in right directory with correct channel name
-                        if ch_name.casefold() in og_name.casefold():
-                            dest = os.path.join(root, ch_name.casefold()+'_mip')
-                            if not os.path.exists(dest): #check if the dest exists
-                                print("Write path doesn't exist.")
-                                os.makedirs(dest)
-                                print(f"Directory '{ch_name.casefold()}_mip' created")
-
-                            img_mip = skimage.util.img_as_uint(skimage.exposure.rescale_intensity(arr_mip))
-
-                            if og_name.endswith('_MMStack'): #remove 'MMStack' in saved name
-                                save_name = og_name[:-len('_MMStack')]+'_mip.'+ext
-                            else:
-                                save_name = og_name+'_mip.'+ext
-                            tiff.imwrite(os.path.join(dest, save_name), img_mip)
-# %%
-if action_flag!=3:
-    batchprocess_mip(main_dir=top_dir)
-
-# %% [markdown]
 # # Stitching
-
-if action_flag==2: #don't stitch and exit
+if action_flag == 2:  # don't stitch and exit
     exit()
 
-# stitch_dir_flag = input("Is stitching directory same as Parent directory above?(y/n-default): ") or 'n'
-# if stitch_dir_flag.casefold()=='y':
-#     stitch_dir = main_dir
-# else:
-#     stitch_dir = input('Enter the location of Parent directory for stitching (must contain MIPs and notes.txt file inside): ')
+## Stitching
+# all unique BF/GFP/RFP location gets added to the main_dir_list
+main_dir_list = []
+for root, subfolders, _ in os.walk(top_dir):
+    if ("BF" in subfolders) or ("GFP" in subfolders) or ("RFP" in subfolders):
+        main_dir_list.append(root)
+main_dir_list = natsorted(main_dir_list)
+print(f"Found these fish data:\n{main_dir_list}")
 
-findscope_flag = 0 #this is a global var
+ch_names = ["BF", "GFP_mip", "RFP_mip"]
 
-def find_lsm_scope(img_h, img_w):
-    '''Finds LSM Scope and downscaling factor automatically using image height and width.
-    Returns: 
-    ds_factor_h = downscaling factor in height, 
-    ds_factor_w = downscaling factor in width'''
+for main_dir in main_dir_list:  # main_dir = location of Directory containing ONE fish data
+    print(f"Processing {main_dir}...")
+    ch_2Dimg_flags, ch_2Dimg_paths, ch_2Dimg_lists = bpf.find_2D_images(main_dir)
+    stage_coords = bpf.find_stage_coords_n_pixel_width_from_2D_images(ch_2Dimg_flags, ch_2Dimg_paths, ch_2Dimg_lists)
+    global_coords_px = bpf.global_coordinate_changer(stage_coords)
 
-    global findscope_flag #refer to the global var
-
-    if img_w==img_h: # probably KLA LSM
-        findscope_flag = 1
-
-        ds_factor_h = 2048//img_h
-        ds_factor_w = 2048//img_w
-        r = 2048%img_h
-
-        if r>0: #implying downscaling factor is in fraction
-            findscope_flag = 0
-            print("Downscaling factor in fraction. Can't process automatically.")
-
-    elif img_w>img_h: # probably WIL LSM
-        findscope_flag = 2
-
-        ds_factor_h = 2160//img_h
-        ds_factor_w = 2560//img_w
-
-        if ds_factor_h!=ds_factor_w:
-            findscope_flag=0
-
-        r_h = 2160%img_h
-        r_w = 2560%img_w
-        
-        if r_h>0 or r_w>0 : #implying downscaling factor is in fraction
-            findscope_flag = 0
-            print("Downscaling factor in fraction. Can't process automatically.")
-
-    if findscope_flag==1:
-        print('LSM Scope used: KLA')
-        print(f'Downscaling factor = {ds_factor_w}')
-    elif findscope_flag==2:
-        print('LSM Scope used: WIL')
-        print(f'Downscaling factor = {ds_factor_w}')
-
-    # user_check = input('Is the above information correct?(y-default/n): ') or 'y'
-    # if user_check.casefold()=='n':
-    #     findscope_flag = 0
-
-    if findscope_flag==0: #couldn't find scope, enter manually
-        print("ERROR: Failed to determine LSM scope automatically.\nEnter manually")
-        findscope_flag = int(input('Enter the scope used:\n1 - KLA LSM Scope\n2 - WIL LSM Scope\nInput (1/2): '))
-        if findscope_flag==1 or findscope_flag==2:
-            ds_factor_h = int(input('Enter the downscaling factor in height: '))
-            ds_factor_w = int(input('Enter the downscaling factor in width: '))
-        else:
-            print("Fatal Error: Exiting")
-            exit()
-
-    return(ds_factor_h, ds_factor_w)
-
-# %%
-# Helping functions
-# check and create path
-def check_create_save_path(save_path):
-    save_path = os.path.normpath(save_path)
-    if not os.path.exists(save_path):  # check if the dest exists
-        print("Save path doesn't exist.")
-        os.makedirs(save_path)
-        print(f"Directory '{os.path.basename(save_path)}' created")
-    else:
-        print("Save path exists")
-# removes dir and non-image(tiff) files from a list
-def remove_non_image_files(big_list, root_path):
-    small_list = []
-    for val in big_list:
-        if os.path.isfile(os.path.join(root_path, val)):  # file check
-            filename_list = val.split(".")
-            og_name = filename_list[0]
-            ext = filename_list[-1]
-            if ext == "tif" or ext == "tiff":  # img check
-                small_list.append(val)
-    return small_list
-
-
-# correct the image list ordering
-def reorder_files_by_pos_tp(file_list):
-    ordered_file_list = []
-    for tp in range(1, (len(file_list) // pos_max) + 1):
-        for pos in range(1, pos_max + 1):
-            for file_name in file_list:  # find the location in img_list with pos and tp
-                if (f"pos{pos}_" in file_name.casefold()) and (
-                    f"timepoint{tp}_" in file_name.casefold()
-                ):
-                    ordered_file_list.append(file_name)
-    return ordered_file_list
-
-
-# finds the target file nearest to the start_path
-def find_nearest_target_file(target, start_path):
-    """finds nearest target file to the 'start_path' in the dir structure
-    returns the location of the found file"""
-    while True:
-        if os.path.isfile(os.path.join(start_path, target)):
-            # found
-            print(f"found {target} at:" + start_path)
-            found_path = os.path.join(start_path, target)
-            break
-
-        if os.path.dirname(start_path) == start_path:  # reached root
-            # not found
-            print(f"Error: Can't find {target}, Enter manually")
-            found_path = input("Enter complete path (should end with .txt): ")
-            break
-        start_path = os.path.dirname(start_path)
-    return found_path
-
-# %% [markdown]
-# **KLA**
-# Global Y_AP = stage y =  ax0
-# Global X_DV = - (stage x) = ax1
-# stitch along Y_AP - ax0
-# **WIL**
-# Global Y_AP = stage y =  ax1
-# Global X_DV = - (stage x) = -(ax0)
-# stitch along Y_AP - ax1
-
-def img_stitcher(stage_coords, img_list):
-    """accept a list of 2D images in img_list and use stage_coords read from notes.txt to stitch images
-    Returns: 2D np.array containing the stitched image
-    """
-    if findscope_flag == 0:
-        print("ERROR: Couldn't find the LSM scope")
-        exit()
-    # poses = np.shape(img_list)[0]
-    img_height = np.shape(img_list)[1]
-    img_width = np.shape(img_list)[2]
-
-    stage_origin = stage_coords[0].copy()
-    global_coords_um = stage_coords - stage_origin
-    global_coords_um[:, 0] = global_coords_um[:, 0] * -1  # flip x axis
-
-    # change global coords to px
-    global_coords_px_1 = (np.ceil(global_coords_um[:, 0] / new_spacing[1])).astype(int)
-    global_coords_px_2 = (np.ceil(global_coords_um[:, 1] / new_spacing[2])).astype(int)
-    global_coords_px = np.vstack((global_coords_px_1, global_coords_px_2)).T
-    
-    #stitched image ax0 is going down, ax1 is to the right
-    if findscope_flag == 2: #wil lsm, stitch horizontally
-        ax0_offset = global_coords_px[:, 0] * -1  # ax0 = -Global X_DV
-        ax1_offset = global_coords_px[:, 1]       # ax1 = Global Y_AP
-        ax0_offset = ax0_offset - np.min(ax0_offset) #find offset from min
-        ax1_offset = ax1_offset - np.min(ax1_offset)
-    elif findscope_flag == 1:  # kla lsm, stitch vertically
-        ax0_offset = global_coords_px[:, 1] # ax0 = Global Y_AP
-        ax1_offset = global_coords_px[:, 0] # ax1 = Global X_DV
-        ax0_offset = ax0_offset - np.min(ax0_offset) #find offset from min
-        ax1_offset = ax1_offset - np.min(ax1_offset)
-
-    ax0_max = img_height + np.max(ax0_offset)
-    ax1_max = img_width + np.max(ax1_offset)
-    stitched_image = np.zeros([ax0_max, ax1_max]) #rows-height, cols-width
-    stitched_image_bg_sub = np.zeros_like(stitched_image)
-
-    #bg subtract all images to be stitched
-    img_list_bg_sub = []
-    for img in img_list:
-        img_list_bg_sub.append(median_bg_subtraction(img))
-
-    #stitch images
-    for i, (h0, w0) in enumerate(zip(ax0_offset, ax1_offset)):
-        stitched_image[h0:h0 + img_height, w0:w0 + img_width] = img_list[i]
-        stitched_image_bg_sub[h0:h0 + img_height, w0:w0 + img_width] = img_list_bg_sub[i]
-    return(stitched_image, stitched_image_bg_sub)
-
-# %%
-sub_names = ["BF", "GFP_mip", "RFP_mip"]
-target1 = "notes.txt"
-target2 = "Notes.txt"
-
-for main_dir, pos_max in zip(main_dir_list, pos_max_list):  # main_dir = location of Directory containing ONE fish data
-    # make a list of all 2D img files by channel
-    bf_flag, gfp_flag, rfp_flag = False, False, False  # 0 means not found, 1 mean found
-    bf_path, gfp_mip_path, rfp_mip_path = "", "", ""
-    bf_img_list, gfp_img_list, rfp_img_list = [], [], []
-
-    for root, subfolders, filenames in os.walk(main_dir):
-        for filename in filenames:
-            filepath = os.path.join(root, filename)
-            # print(f'Reading: {filepath}')
-            filename_list = filename.split(".")
-            og_name = filename_list[0]  # first of list=name
-            ext = filename_list[-1]  # last of list=extension
-
-            if ext == "tif" or ext == "tiff":
-                if (not bf_flag) and ("bf" in og_name.casefold()):  # find BF
-                    print("BF images found at:" + root)
-                    bf_path = root
-                    bf_img_list = reorder_files_by_pos_tp(
-                        remove_non_image_files(natsorted(os.listdir(root)), root)
-                    )
-                    bf_flag = True
-                elif "mip" in og_name.casefold():
-                    if (not gfp_flag) and ("gfp" in og_name.casefold()):
-                        print("GFP MIP images found at:" + root)
-                        gfp_mip_path = root
-                        gfp_img_list = reorder_files_by_pos_tp(
-                            remove_non_image_files(natsorted(os.listdir(root)), root)
-                        )
-                        gfp_flag = True
-                    elif (not rfp_flag) and ("rfp" in og_name.casefold()):
-                        print("RFP MIP images found at:" + root)
-                        rfp_mip_path = root
-                        rfp_img_list = reorder_files_by_pos_tp(
-                            remove_non_image_files(natsorted(os.listdir(root)), root)
-                        )
-                        rfp_flag = True
-    if not bf_flag:
-        print(f"No BF images found in {main_dir}")
-    if not gfp_flag:
-        print(f"No GFP MIP images found in {main_dir}")
-    if not rfp_flag:
-        print(f"No RFP MIP images found in {main_dir}")
-
-    # Stitch images
-
-    # find the nearest notes.txt
-    config = configparser.ConfigParser()
-    start_path = ""
-    img_path = ''  # dummy
-    # get start_path for search
-    # get sample image to find scope and downscaling factor
-    if gfp_flag:
-        start_path = gfp_mip_path
-        img_path = os.path.join(gfp_mip_path, gfp_img_list[0])
-    elif rfp_flag:
-        start_path = rfp_mip_path
-        img_path = os.path.join(rfp_mip_path, rfp_img_list[0])
-    elif bf_flag:
-        start_path = bf_path
-        img_path = os.path.join(bf_path, bf_img_list[0])
-    img = tiff.imread(img_path)
-    # fish_num = int(
-    #     start_path[start_path.casefold().rfind("fish") + len("fish")]
-    # )  # find fish number starting from the child dir
-    fish_num = int(
-        img_path[img_path.casefold().rfind("fish") + len("fish")]
-    )  # find fish number starting from the img_name
-    print(f"Found fish_num = {fish_num}")
-    # user_check = "y"
-    # if user_check.casefold() == "n":
-    #     fish_num = int(input("Enter fish_num: "))
-
-    while True:
-        if os.path.isfile(os.path.join(start_path, target1)):
-            print(f"found {target1} at:" + start_path)
-            config.read(os.path.join(start_path, target1))
-            break
-        elif os.path.isfile(os.path.join(start_path, target2)):
-            print(f"found {target2} at:" + start_path)
-            config.read(os.path.join(start_path, target2))
-            break
-
-        if os.path.dirname(start_path) == start_path:  # reached root
-            # not found
-            print("Error: Can't find notes.txt, Enter manually")
-            notes_path = input("Enter complete path (should end with .txt): ")
-            config.read(notes_path)
-            break
-        start_path = os.path.dirname(start_path)
-    # print(config.sections())
-    abbrev = config.getfloat(f"Fish {fish_num} Region 1", "x_pos", fallback=False)
-    if abbrev:
-        # print('abbreviated')
-        config_prop_list = ["x_pos", "y_pos", "z_stack_start_pos"]
-    else:
-        # print('not abbreviated')
-        config_prop_list = ["x_position", "y_position", "z_start_position"]
-    stage_coords = np.zeros(shape=(pos_max, 3))
-    for i in range(1, pos_max + 1):
-        for j, val in enumerate(config_prop_list):  # x/y/z axes
-            stage_coords[i - 1][j] = config.getfloat(f"Fish {fish_num} Region {i}", val)
-    print(f"Found stage_coords: \n{stage_coords}")
-
-    (ds_h, ds_w) = find_lsm_scope(img.shape[0], img.shape[1])
-
-    # The pixel spacing in our LSM image is 1µm in the z axis, and  0.1625µm in the x and y axes.
-    zd, xd, yd = 1, 0.1625, 0.1625  # zeroth dimension is z in skimage coords
-    orig_spacing = np.array([zd, xd, yd])  # change to the actual pixel spacing from the microscope
-    new_spacing = np.array([zd, xd * ds_w, yd * ds_h])  # multiply by the found downsampling factor
-
-    # read all images per timepoint then stitch and save them at dest
-    ch_flag_list = [bf_flag, gfp_flag, rfp_flag]
-    ch_path_list = [bf_path, gfp_mip_path, rfp_mip_path]
-    ch_img_list = [bf_img_list, gfp_img_list, rfp_img_list]
-
-    for k, ch_flag in enumerate(ch_flag_list):
-        all_img_list = ch_img_list[k]
-        ch_name = sub_names[k]
-
-        if ch_flag:
+    for ch_name, ch_2Dimg_flag, ch_2Dimg_path, ch_2Dimg_list in zip(
+        ch_names, ch_2Dimg_flags, ch_2Dimg_paths, ch_2Dimg_lists
+    ):
+        if ch_2Dimg_flag:
+            pos_max = bpf.pos_max
             print(f"Stitching {ch_name} images...")
-            save_path = os.path.join(ch_path_list[k], f'{ch_name.casefold()}_stitched')
-            save_path_bgsub = os.path.join(ch_path_list[k], f'{ch_name.casefold()}_bgsub_stitched')
-            check_create_save_path(save_path)
-            check_create_save_path(save_path_bgsub)
+            save_path = os.path.join(ch_2Dimg_path, f"{ch_name.casefold()}_stitched")
+            save_path_bgsub = os.path.join(ch_2Dimg_path, f"{ch_name.casefold()}_bgsub_stitched")
+            bpf.check_create_save_path(save_path)
+            bpf.check_create_save_path(save_path_bgsub)
 
-            for i in tqdm(
-                range(len(all_img_list) // pos_max)
-            ):  # run once per timepoint
+            for i in tqdm(range(len(ch_2Dimg_list) // pos_max)):  # run once per timepoint
                 # print(f"tp: {i+1}")
                 img_list_per_tp = [0] * pos_max
                 for j in range(0, pos_max):
                     loc = i * pos_max + j
                     # print(loc)
-                    img_list_per_tp[j] = tiff.imread(
-                        os.path.join(ch_path_list[k], all_img_list[loc])
-                    )  # save all pos images in 3D array
+                    # save all pos images in 3D array
+                    img = tiff.imread(os.path.join(ch_2Dimg_path, ch_2Dimg_list[loc]))
+                    if len(img.shape) != 2:
+                        print(f"{ch_2Dimg_list[loc]}: Image shape is not 2D... something is wrong. exiting...")
+                        exit()
+                    else:
+                        img_list_per_tp[j] = img
 
-                stitched_img, stitched_img_bg_sub = img_stitcher(stage_coords, img_list_per_tp)
-                stitched_img_uint = skimage.util.img_as_uint(
-                    skimage.exposure.rescale_intensity(stitched_img)
-                )  # rescale float and change dtype to uint16
+                stitched_img, stitched_img_bgsub = bpf.img_stitcher_2D(global_coords_px, img_list_per_tp)
+
                 skimage.io.imsave(
                     os.path.join(save_path, f"Timepoint{i+1}_{ch_name}_stitched.png"),
-                    stitched_img_uint,
+                    stitched_img,
                     check_contrast=False,
                 )  # save the stitched image
-
-                stitched_img_uint_bgsub = skimage.util.img_as_uint(
-                    skimage.exposure.rescale_intensity(stitched_img_bg_sub)
-                )  # rescale float and change dtype to uint16
                 skimage.io.imsave(
                     os.path.join(save_path_bgsub, f"Timepoint{i+1}_{ch_name}_stitched.png"),
-                    stitched_img_uint_bgsub,
+                    stitched_img_bgsub,
                     check_contrast=False,
                 )  # save the bg subtracted stitched image

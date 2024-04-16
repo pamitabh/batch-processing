@@ -571,7 +571,7 @@ def img_stitcher_2D(global_coords_px, img_list):
     ax1_max = img_width + np.max(ax1_offset)
 
     # create empty stitched image
-    stitched_image = np.zeros([ax0_max, ax1_max])  # rows-height, cols-width
+    stitched_image = np.zeros([ax0_max, ax1_max], dtype=og_datatype)  # rows-height, cols-width
     stitched_image_bg_sub = np.zeros_like(stitched_image)
 
     # bg subtract all images to be stitched
@@ -583,7 +583,11 @@ def img_stitcher_2D(global_coords_px, img_list):
     for i, (h0, w0) in enumerate(zip(ax0_offset, ax1_offset)):
         stitched_image[h0 : h0 + img_height, w0 : w0 + img_width] = img_list[i]
         stitched_image_bg_sub[h0 : h0 + img_height, w0 : w0 + img_width] = img_list_bg_sub[i]
-    return (np.round(stitched_image).astype(og_datatype), np.round(stitched_image_bg_sub).astype(og_datatype))
+    # return (np.round(stitched_image).astype(og_datatype), np.round(stitched_image_bg_sub).astype(og_datatype))
+    # additional check
+    if stitched_image.dtype != og_datatype:
+        raise TypeError("Datatype is not preserved.. Something wrong.. Check code")
+    return (stitched_image, stitched_image_bg_sub)
 
 
 def img_stitcher_3D(global_coords_px, img_list, bg_sub=True):
@@ -593,7 +597,7 @@ def img_stitcher_3D(global_coords_px, img_list, bg_sub=True):
     if findscope_flag == 0:
         print("ERROR: Couldn't find the LSM scope")
         exit()
-    # og_datatype = img_list[0].dtype
+    og_datatype = img_list[0].dtype
     img_height = np.shape(img_list[0])[1]
     img_width = np.shape(img_list[0])[2]
     z_width = [np.shape(img_list[i])[0] for i in range(pos_max)]
@@ -619,8 +623,8 @@ def img_stitcher_3D(global_coords_px, img_list, bg_sub=True):
     z_max = np.max(z_width) + np.max(z_offset)
     # print(f'ax0_max: {ax0_max}, ax1_max: {ax1_max}, z_max: {z_max}')
 
-    # create empty stitched image, to save memory this is created as uint16
-    stitched_image = np.zeros([z_max, ax0_max, ax1_max], dtype=np.uint16)  # plane - z, rows-height, cols-width
+    # create empty stitched image, to save memory this is created as the og_dtype
+    stitched_image = np.zeros([z_max, ax0_max, ax1_max], dtype=og_datatype)  # plane - z, rows-height, cols-width
 
     if not bg_sub:
         # stitch images
@@ -634,4 +638,9 @@ def img_stitcher_3D(global_coords_px, img_list, bg_sub=True):
         # stitch images
         for i, (z0, h0, w0) in enumerate(zip(z_offset, ax0_offset, ax1_offset)):
             stitched_image[z0 : z0 + z_width[i], h0 : h0 + img_height, w0 : w0 + img_width] = img_list_bg_sub[i]
+
+    # additional check
+    if stitched_image.dtype != og_datatype:
+        raise TypeError("Datatype is not preserved.. Something wrong.. Check code")
+
     return stitched_image

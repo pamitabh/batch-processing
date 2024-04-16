@@ -115,7 +115,7 @@ for main_dir in main_dir_list:  # main_dir = location of Directory containing ON
             pos_max = bpf.pos_max
             print(f"Stitching {ch_name} images...")
             save_path_stitched_img = os.path.join(ch_2Dimg_path, f"{ch_name.casefold()}_stitched")
-            save_path_stitched_edited_img = os.path.join(ch_2Dimg_path, f"{ch_name.casefold()}_bgsub_rescaled_stitched")
+            save_path_stitched_edited_img = os.path.join(ch_2Dimg_path, f"{ch_name.casefold()}_stitched_bgsub_rescaled")
             bpf.check_create_save_path(save_path_stitched_img)
             bpf.check_create_save_path(save_path_stitched_edited_img)
 

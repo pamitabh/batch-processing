@@ -114,10 +114,10 @@ for main_dir in main_dir_list:  # main_dir = location of Directory containing ON
         if ch_2Dimg_flag:
             pos_max = bpf.pos_max
             print(f"Stitching {ch_name} images...")
-            save_path = os.path.join(ch_2Dimg_path, f"{ch_name.casefold()}_stitched")
-            save_path_bgsub = os.path.join(ch_2Dimg_path, f"{ch_name.casefold()}_bgsub_stitched")
-            bpf.check_create_save_path(save_path)
-            bpf.check_create_save_path(save_path_bgsub)
+            save_path_stitched_img = os.path.join(ch_2Dimg_path, f"{ch_name.casefold()}_stitched")
+            save_path_stitched_edited_img = os.path.join(ch_2Dimg_path, f"{ch_name.casefold()}_bgsub_rescaled_stitched")
+            bpf.check_create_save_path(save_path_stitched_img)
+            bpf.check_create_save_path(save_path_stitched_edited_img)
 
             for i in tqdm(range(len(ch_2Dimg_list) // pos_max)):  # run once per timepoint
                 # print(f"tp: {i+1}")
@@ -134,14 +134,16 @@ for main_dir in main_dir_list:  # main_dir = location of Directory containing ON
                         img_list_per_tp[j] = img
 
                 stitched_img, stitched_img_bgsub = bpf.img_stitcher_2D(global_coords_px, img_list_per_tp)
-
+                # By default, the min/max intensities of the input image are stretched to the limits allowed by the image’s dtype, since in_range defaults to ‘image’ and out_range defaults to ‘dtype’:
+                stitched_img_bgsub_rescaled = skimage.exposure.rescale_intensity(stitched_img_bgsub)
+                
                 skimage.io.imsave(
-                    os.path.join(save_path, f"Timepoint{i+1}_{ch_name}_stitched.png"),
+                    os.path.join(save_path_stitched_img, f"Timepoint{i+1}_{ch_name}_stitched.png"),
                     stitched_img,
                     check_contrast=False,
                 )  # save the stitched image
                 skimage.io.imsave(
-                    os.path.join(save_path_bgsub, f"Timepoint{i+1}_{ch_name}_stitched.png"),
-                    stitched_img_bgsub,
+                    os.path.join(save_path_stitched_edited_img, f"Timepoint{i+1}_{ch_name}_stitched.png"),
+                    stitched_img_bgsub_rescaled,
                     check_contrast=False,
                 )  # save the bg subtracted stitched image

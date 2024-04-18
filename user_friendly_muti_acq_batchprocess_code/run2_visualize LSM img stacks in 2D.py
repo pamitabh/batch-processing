@@ -119,7 +119,6 @@ for main_dir in main_dir_list:  # main_dir = location of Directory containing ON
             bpf.check_create_save_path(save_path_stitched_img)
             bpf.check_create_save_path(save_path_stitched_edited_img)
 
-            ref_img_histogram = 
             for i in tqdm(range(len(ch_2Dimg_list) // pos_max)):  # run once per timepoint
                 # print(f"tp: {i+1}")
                 img_list_per_tp = [0] * pos_max
@@ -137,13 +136,15 @@ for main_dir in main_dir_list:  # main_dir = location of Directory containing ON
                 stitched_img, stitched_img_bgsub = bpf.img_stitcher_2D(global_coords_px, img_list_per_tp)
                 # By default, the min/max intensities of the input image are stretched to the limits allowed by the image’s dtype, since in_range defaults to ‘image’ and out_range defaults to ‘dtype’:
                 # stitched_img_bgsub_rescaled = skimage.exposure.rescale_intensity(stitched_img_bgsub) #produces images with pulsing mean intensity
-                
-                #use histogram matching using the first image
-                if i==0: #set first stitched image as reference
+
+                # use histogram matching using the first image
+                if i == 0:  # set first stitched image as reference
                     ref_img_histogram = stitched_img_bgsub
-                else: #match remaining images histogram to the first image
-                    stitched_img_bgsub_rescaled = skimage.exposure.match_histograms(image=stitched_img_bgsub, reference=ref_img_histogram)
-                
+                else:  # match remaining images histogram to the first image
+                    stitched_img_bgsub_rescaled = skimage.exposure.match_histograms(
+                        image=stitched_img_bgsub, reference=ref_img_histogram
+                    )
+
                 skimage.io.imsave(
                     os.path.join(save_path_stitched_img, f"Timepoint{i+1}_{ch_name}_stitched.png"),
                     stitched_img,

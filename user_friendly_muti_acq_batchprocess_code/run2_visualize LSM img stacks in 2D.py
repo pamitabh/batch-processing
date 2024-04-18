@@ -137,13 +137,15 @@ for main_dir in main_dir_list:  # main_dir = location of Directory containing ON
                 # By default, the min/max intensities of the input image are stretched to the limits allowed by the image’s dtype, since in_range defaults to ‘image’ and out_range defaults to ‘dtype’:
                 # stitched_img_bgsub_rescaled = skimage.exposure.rescale_intensity(stitched_img_bgsub) #produces images with pulsing mean intensity
 
+                og_datatype = stitched_img_bgsub.dtype
                 # use histogram matching using the first image
                 if i == 0:  # set first stitched image as reference
                     ref_img_histogram = stitched_img_bgsub
+                    stitched_img_bgsub_rescaled = stitched_img_bgsub
                 else:  # match remaining images histogram to the first image
-                    stitched_img_bgsub_rescaled = skimage.exposure.match_histograms(
-                        image=stitched_img_bgsub, reference=ref_img_histogram
-                    )
+                    stitched_img_bgsub_rescaled = (
+                        skimage.exposure.match_histograms(image=stitched_img_bgsub, reference=ref_img_histogram)
+                    ).astype(og_datatype)
 
                 skimage.io.imsave(
                     os.path.join(save_path_stitched_img, f"Timepoint{i+1}_{ch_name}_stitched.png"),

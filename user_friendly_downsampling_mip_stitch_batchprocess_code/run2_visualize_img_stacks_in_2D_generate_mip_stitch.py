@@ -26,7 +26,6 @@ from tqdm import tqdm
 # import pandas as pd
 # import matplotlib.pyplot as plt
 
-top_dir = os.path.normpath(input("Enter the top directory with ALL acquisitions: "))
 action_flag = 0
 
 while action_flag == 0:
@@ -60,28 +59,7 @@ if action_flag != 2:  # more info for stitching
         print("Okay, bye!")
         exit()
 
-#     # all unique BF location gets added to the main_dir_list
-#     main_dir_list = []
-#     for root, subfolders, _ in os.walk(top_dir):
-#         if "BF" in subfolders:
-#             main_dir_list.append(root)
-#     print(f"Found these fish data:\n{main_dir_list}")
-#     pos_input_flag = input("Is the number of pos/regions in each folder above the same? (y-default/n)") or "y"
-#     if pos_input_flag.casefold() == "y":
-#         pos_max_list = len(main_dir_list) * [
-#             int(input("Enter number of positions/regions of imaging per timepoint (default=4)") or "4")
-#         ]
-#     else:
-#         pos_max_list = []
-#         while len(pos_max_list) != len(main_dir_list):
-#             pos_max_list = (input("Enter the list of positions/regions separated by space in the above order")).split()
-#             if len(pos_max_list) != len(main_dir_list):
-#                 print("entered list length is not same as the number of folders found above. Please re-enter.")
-#                 continue
-#             else:
-#                 # convert each item to int type
-#                 for i in range(len(pos_max_list)):
-#                     pos_max_list[i] = int(pos_max_list[i])
+top_dir = os.path.normpath(input("Enter the top directory with ALL acquisitions: "))
 
 # %%
 if action_flag != 3:

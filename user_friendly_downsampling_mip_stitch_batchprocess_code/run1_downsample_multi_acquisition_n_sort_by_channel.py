@@ -32,10 +32,12 @@ while action_flag == 0:
 # get user input for source and dest
 src, trg = "", ""
 while src == trg or src == "" or trg == "":
-    src = os.path.normpath(input("Enter the Parent folder for original images: "))
+    src = os.path.normpath(
+        input("Enter the Parent folder for original images (should contain 'Acquisition' folders): ")
+    )
     trg = os.path.normpath(input("Enter the Destination folder: "))
     if src == trg:
-        print("Source and Target cannot be empty or the same location. Re-Enter..")
+        print("Parent and Destination folders cannot be empty or have the same location. Re-Enter..")
 
 # n is the downscaling factor in x and y, change it accordingly.
 n = int(input("Enter downscaling factor for x and y dimensions (default=4):") or "4")

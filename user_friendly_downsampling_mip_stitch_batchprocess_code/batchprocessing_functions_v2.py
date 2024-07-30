@@ -72,7 +72,8 @@ def reorder_files_by_pos_tp(file_list):
     raw_pos_arr = np.zeros_like(file_list_arr, dtype=int)
     raw_tp_arr = np.zeros_like(file_list_arr, dtype=int)
     for i, file_name in enumerate(file_list_arr):
-        file_name_list = file_name.split("_")
+        file_name_wo_ext = file_name.split(".")[0]
+        file_name_list = file_name_wo_ext.split("_")
         for substr in file_name_list:
             substr = substr.casefold()
             if "pos" in substr:

@@ -29,8 +29,8 @@ new_spacing = [0, 0, 0]
 ## Small Helping Functions
 
 
-# check and create path
 def check_create_save_path(save_path):
+    """checks if the folder at 'save_path' alreay exists if not then it creates that folder"""
     save_path = os.path.normpath(save_path)
     if not os.path.exists(save_path):  # check if the dest exists
         print("Save path doesn't exist.")
@@ -40,8 +40,8 @@ def check_create_save_path(save_path):
         print("Save path exists")
 
 
-# removes dir and non-image(tiff) files from a list
 def remove_non_image_files(big_list, root_path):
+    """removes dir and non-image(tiff) files from a list"""
     small_list = []
     for val in big_list:
         if os.path.isfile(os.path.join(root_path, val)):  # file check
@@ -53,8 +53,8 @@ def remove_non_image_files(big_list, root_path):
     return small_list
 
 
-# removes dir and non-csv files from a list
 def remove_non_csv_files(big_list, root_path):
+    """removes dir and non-csv files from files in the big_list at the root_path"""
     small_list = []
     for val in big_list:
         if os.path.isfile(os.path.join(root_path, val)):  # file check
@@ -67,6 +67,7 @@ def remove_non_csv_files(big_list, root_path):
 
 
 def reorder_files_by_pos_tp(file_list):
+    """reoders the file_list by pos and tp"""
     file_list_arr = np.array(file_list)
     global pos_max
     raw_pos_arr = np.zeros_like(file_list_arr, dtype=int)
@@ -108,6 +109,7 @@ def read_n_downscale_image(read_path, n):
 
 
 def single_acquisition_downsample(acq_path, new_trg_path, single_fish_flag, n):
+    """downsamples the images in the Acquisition folder at the acq_path and saves them in the new_trg_path"""
     # Assuming the acq_path has the acquisition dir:
     # acq_path = Acquisition dir -> {fish1 dir, fish2 dir, etc.} + notes.txt
     files = os.listdir(acq_path)
@@ -154,7 +156,7 @@ def single_acquisition_downsample(acq_path, new_trg_path, single_fish_flag, n):
 
 
 def find_2D_images(main_dir):
-    # make a list of all 2D img files by channel
+    """makes a list of all 2D img files by channel order 'BF, GFP, RFP' in the main_dir"""
     bf_flag, gfp_flag, rfp_flag = False, False, False  # 0 means not found, 1 mean found
     bf_path, gfp_mip_path, rfp_mip_path = "", "", ""
     bf_img_list, gfp_img_list, rfp_img_list = [], [], []
@@ -206,6 +208,7 @@ def find_2D_images(main_dir):
 
 
 def find_3D_images(main_dir):
+    """makes a list of all 3D img files by channel order 'GFP, RFP' in the main_dir"""
     # very general and robust code which looks for the files with those names instead of depending upon just the folder names
     # 3D images
     gfp_flag, rfp_flag = False, False  # 0 means not found, 1 mean found
@@ -298,7 +301,23 @@ def find_lsm_scope(img_h, img_w):
             exit()
     return (ds_factor_h, ds_factor_w)
 
-
+def find_nearest_target_file(start_path, target):
+    """finds the target file in the directory tree starting from start_path, returns the path of the file if found, else None"""
+    found_file_path = None
+    while True:
+        if os.path.isfile(os.path.join(start_path, target)):
+            # found target
+            print(f"found {target} at:" + start_path)
+            found_file_path = os.path.join(start_path, target)
+            break
+        elif os.path.dirname(start_path) == start_path:  # reached root
+            # not found
+            print(f"Warning: Couldn't find {target} file in the directory structure of {start_path}")
+            break
+        start_path = os.path.dirname(start_path)
+        
+    return found_file_path
+        
 def find_stage_coords_n_pixel_width_from_2D_images(ch_flags, ch_paths, ch_img_lists):
     """Send channel flags and paths in the order [bf, gfp, rfp]"""
     # change global image_height and image_width
@@ -335,27 +354,15 @@ def find_stage_coords_n_pixel_width_from_2D_images(ch_flags, ch_paths, ch_img_li
         img_path[img_path.casefold().rfind("fish") + len("fish")]
     )  # find fish number starting from the img_name
     print(f"found fish_num = {fish_num}")
+    
     target1 = "notes.txt"
     target2 = "Notes.txt"
-    while True:
-        if os.path.isfile(os.path.join(start_path, target1)):
-            # found
-            print(f"found {target1} at:" + start_path)
-            config.read(os.path.join(start_path, target1))
-            break
-        elif os.path.isfile(os.path.join(start_path, target2)):
-            # found
-            print(f"found {target2} at:" + start_path)
-            config.read(os.path.join(start_path, target2))
-            break
-
-        if os.path.dirname(start_path) == start_path:  # reached root
-            # not found
-            print("Error: Can't find notes.txt, Enter manually")
-            notes_path = input("Enter complete path (should end with .txt): ")
-            config.read(notes_path)
-            break
-        start_path = os.path.dirname(start_path)
+    notes_path = find_nearest_target_file(start_path, target1) or find_nearest_target_file(start_path, target2)
+    if notes_path is None:
+        print("Error: Can't find notes.txt, Enter manually")
+        notes_path = input("Enter complete path (should end with .txt): ")
+    config.read(notes_path)
+        
     # print(config.sections())
     abbrev = config.getfloat(f"Fish {fish_num} Region 1", "x_pos", fallback=False)
     if abbrev:
@@ -411,27 +418,15 @@ def find_stage_coords_n_pixel_width_from_3D_images(ch_flags, ch_paths, ch_img_li
         img_path[img_path.casefold().rfind("fish") + len("fish")]
     )  # find fish number starting from the img_name
     print(f"found fish_num = {fish_num}")
+
     target1 = "notes.txt"
     target2 = "Notes.txt"
-    while True:
-        if os.path.isfile(os.path.join(start_path, target1)):
-            # found
-            print(f"found {target1} at:" + start_path)
-            config.read(os.path.join(start_path, target1))
-            break
-        elif os.path.isfile(os.path.join(start_path, target2)):
-            # found
-            print(f"found {target2} at:" + start_path)
-            config.read(os.path.join(start_path, target2))
-            break
-
-        if os.path.dirname(start_path) == start_path:  # reached root
-            # not found
-            print("Error: Can't find notes.txt, Enter manually")
-            notes_path = input("Enter complete path (should end with .txt): ")
-            config.read(notes_path)
-            break
-        start_path = os.path.dirname(start_path)
+    notes_path = find_nearest_target_file(start_path, target1) or find_nearest_target_file(start_path, target2)
+    if notes_path is None:
+        print("Error: Can't find notes.txt, Enter manually")
+        notes_path = input("Enter complete path (should end with .txt): ")
+    config.read(notes_path)
+        
     # print(config.sections())
     abbrev = config.getfloat(f"Fish {fish_num} Region 1", "x_pos", fallback=False)
     if abbrev:
@@ -488,6 +483,7 @@ def global_coordinate_changer(stage_coords):
 
 
 def median_bg_subtraction(img_wo_bg_sub):
+    """subtracts the median pixel intensity of the image from the image"""
     img_bg_sub = img_wo_bg_sub - np.median(img_wo_bg_sub.flatten())  # subtract median
     img_bg_sub[img_bg_sub < 0] = 0  # make all negative values zero
     return img_bg_sub

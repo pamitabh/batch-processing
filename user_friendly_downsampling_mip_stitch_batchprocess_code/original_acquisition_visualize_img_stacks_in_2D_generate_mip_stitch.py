@@ -10,7 +10,7 @@
 import os
 import shutil
 
-import batchprocessing_functions_v2 as bpf
+import batchprocessing_functions_v3 as bpf
 import numpy as np
 import skimage as ski
 from natsort import natsorted

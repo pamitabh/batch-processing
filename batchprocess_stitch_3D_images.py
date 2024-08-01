@@ -8,11 +8,12 @@
 # License: GNU GPL v3.0
 
 import os
+
 import tifffile as tiff
 from natsort import natsorted
 from tqdm import tqdm
 
-import batchprocessing_functions_v2_copy as bpf
+import batchprocessing_functions_v3_copy as bpf
 
 print(
     """Instructions for stitching:

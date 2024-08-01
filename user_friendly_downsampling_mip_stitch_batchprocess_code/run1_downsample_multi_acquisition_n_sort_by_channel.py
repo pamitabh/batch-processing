@@ -6,7 +6,7 @@ from pathlib import Path
 # import skimage
 # import tifffile as tiff
 # import re
-import batchprocessing_functions_v2 as bpf
+import batchprocessing_functions_v3 as bpf
 
 # %%
 action_flag = 0

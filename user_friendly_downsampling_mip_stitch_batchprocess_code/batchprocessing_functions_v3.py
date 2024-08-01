@@ -78,6 +78,7 @@ def reorder_files_by_pos_tp(file_list):
     ind = np.lexsort((raw_pos_arr, raw_tp_arr))  # Sort by tp, then by pos
     return file_list_arr[ind]
 
+
 def find_pos_tp_in_filename(file_name):
     """finds the 'timepoint' and 'pos' in the filename (must be separated by '_')
     Returns int: file_name_pos, file_name_tp"""
@@ -97,6 +98,7 @@ def find_pos_tp_in_filename(file_name):
     else:
         return (file_name_tp, file_name_pos)
 
+
 def find_nearest_target_file(start_path, target):
     """finds the target file in the directory tree starting from start_path, returns the path of the file if found, else None"""
     found_file_path = None
@@ -108,12 +110,13 @@ def find_nearest_target_file(start_path, target):
             break
         elif os.path.dirname(start_path) == start_path:  # reached root
             # not found
-            print(f"Warning: Couldn't find {target} file in the directory structure of {start_path}")
+            print(
+                f"Warning: Couldn't find {target} file in the directory structure of {start_path}"
+            )
             break
         start_path = os.path.dirname(start_path)
-        
-    return found_file_path
 
+    return found_file_path
 
 
 # Important functions
@@ -203,7 +206,9 @@ def find_2D_images(main_dir):
                 if (not bf_flag) and ("bf" in og_name.casefold()):  # find BF
                     print("BF images found at:" + root)
                     bf_path = root
-                    bf_img_list = reorder_files_by_pos_tp(remove_non_image_files(natsorted(os.listdir(root)), root))
+                    bf_img_list = reorder_files_by_pos_tp(
+                        remove_non_image_files(natsorted(os.listdir(root)), root)
+                    )
                     bf_flag = True
                 elif "mip" in og_name.casefold():
                     if (not gfp_flag) and ("gfp" in og_name.casefold()):
@@ -253,7 +258,9 @@ def find_3D_images(main_dir):
             og_name = (filename_list[0]).casefold()  # first of list=name
             ext = (filename_list[-1]).casefold()  # last of list=extension
             if ext == "tif" or ext == "tiff":
-                if ("bf" not in og_name) and ("mip" not in og_name):  # ignore BF and MIP
+                if ("bf" not in og_name) and (
+                    "mip" not in og_name
+                ):  # ignore BF and MIP
                     if ("gfp" in og_name) and (not gfp_flag):  # find GFP
                         print("GFP images found at:" + root)
                         gfp_path = root
@@ -322,7 +329,11 @@ def find_lsm_scope(img_h, img_w):
 
     if findscope_flag == 0:  # couldn't find scope, enter manually
         print("ERROR: Failed to determine LSM scope automatically.\nEnter manually")
-        findscope_flag = int(input("Enter the scope used:\n1 - KLA LSM Scope\n2 - WIL LSM Scope\nInput (1/2): "))
+        findscope_flag = int(
+            input(
+                "Enter the scope used:\n1 - KLA LSM Scope\n2 - WIL LSM Scope\nInput (1/2): "
+            )
+        )
         if findscope_flag == 1 or findscope_flag == 2:
             ds_factor_h = int(input("Enter the downscaling factor in height: "))
             ds_factor_w = int(input("Enter the downscaling factor in width: "))
@@ -331,7 +342,7 @@ def find_lsm_scope(img_h, img_w):
             exit()
     return (ds_factor_h, ds_factor_w)
 
-        
+
 def find_stage_coords_n_pixel_width_from_2D_images(ch_flags, ch_paths, ch_img_lists):
     """Send channel flags and paths in the order [bf, gfp, rfp]"""
     # change global image_height and image_width
@@ -360,7 +371,9 @@ def find_stage_coords_n_pixel_width_from_2D_images(ch_flags, ch_paths, ch_img_li
     img = tiff.imread(img_path)
     img_h, img_w = img.shape[0], img.shape[1]
     (ds_h, ds_w) = find_lsm_scope(img_h, img_w)
-    new_spacing = np.array([ZD, YD * ds_h, XD * ds_w])  # downscale x&y by n, skimage coords = z, y, x plane, row, col
+    new_spacing = np.array(
+        [ZD, YD * ds_h, XD * ds_w]
+    )  # downscale x&y by n, skimage coords = z, y, x plane, row, col
     print(f"Pixel width (plane, row, col): {new_spacing}\n")
 
     # find the fish number from the image path
@@ -368,20 +381,26 @@ def find_stage_coords_n_pixel_width_from_2D_images(ch_flags, ch_paths, ch_img_li
         img_path[img_path.casefold().rfind("fish") + len("fish")]
     )  # find fish number starting from the img_name
     print(f"found fish_num = {fish_num}")
-    
+
     target1 = "notes.txt"
     target2 = "Notes.txt"
-    notes_path = find_nearest_target_file(start_path, target1) or find_nearest_target_file(start_path, target2)
+    notes_path = find_nearest_target_file(
+        start_path, target1
+    ) or find_nearest_target_file(start_path, target2)
     if notes_path is None:
         print("Error: Can't find notes.txt, Enter manually")
         notes_path = input("Enter complete path (should end with .txt): ")
     config.read(notes_path)
-        
+
     # print(config.sections())
     abbrev = config.getfloat(f"Fish {fish_num} Region 1", "x_pos", fallback=False)
     if abbrev:
         # config_prop_list = ["x_pos", "y_pos", "z_pos"]
-        config_prop_list = ["x_pos", "y_pos", "z_stack_start_pos"]  # wil and kla stores in this format
+        config_prop_list = [
+            "x_pos",
+            "y_pos",
+            "z_stack_start_pos",
+        ]  # wil and kla stores in this format
         print(f"abbreviated props... reading {config_prop_list}")
     else:
         # config_prop_list = ["x_position", "y_position", "z_position"]
@@ -424,7 +443,9 @@ def find_stage_coords_n_pixel_width_from_3D_images(ch_flags, ch_paths, ch_img_li
         exit()
     img_h, img_w = img.shape[0], img.shape[1]
     (ds_h, ds_w) = find_lsm_scope(img_h, img_w)
-    new_spacing = np.array([ZD, YD * ds_h, XD * ds_w])  # downscale x&y by n, skimage coords = z, y, x plane, row, col
+    new_spacing = np.array(
+        [ZD, YD * ds_h, XD * ds_w]
+    )  # downscale x&y by n, skimage coords = z, y, x plane, row, col
     print(f"Pixel width (plane, row, col): {new_spacing}\n")
 
     # find the fish number from the image path
@@ -435,17 +456,23 @@ def find_stage_coords_n_pixel_width_from_3D_images(ch_flags, ch_paths, ch_img_li
 
     target1 = "notes.txt"
     target2 = "Notes.txt"
-    notes_path = find_nearest_target_file(start_path, target1) or find_nearest_target_file(start_path, target2)
+    notes_path = find_nearest_target_file(
+        start_path, target1
+    ) or find_nearest_target_file(start_path, target2)
     if notes_path is None:
         print("Error: Can't find notes.txt, Enter manually")
         notes_path = input("Enter complete path (should end with .txt): ")
     config.read(notes_path)
-        
+
     # print(config.sections())
     abbrev = config.getfloat(f"Fish {fish_num} Region 1", "x_pos", fallback=False)
     if abbrev:
         # config_prop_list = ["x_pos", "y_pos", "z_pos"]
-        config_prop_list = ["x_pos", "y_pos", "z_stack_start_pos"]  # wil and kla stores in this format
+        config_prop_list = [
+            "x_pos",
+            "y_pos",
+            "z_stack_start_pos",
+        ]  # wil and kla stores in this format
         print(f"abbreviated props... reading {config_prop_list}")
     else:
         # config_prop_list = ["x_position", "y_position", "z_position"]
@@ -492,7 +519,11 @@ def global_coordinate_changer(stage_coords):
     global_coords_um[:, 0] = global_coords_um[:, 0] * -1  # flip x axis
     # um to pixels: 1px = (1/pixel width) um
     # as the stage position is in x (col:axis-2), y(row:axis-1), z(plane:axis-0) format
-    global_coords_px = global_coords_um / [new_spacing[2], new_spacing[1], new_spacing[0]]
+    global_coords_px = global_coords_um / [
+        new_spacing[2],
+        new_spacing[1],
+        new_spacing[0],
+    ]
     return global_coords_px
 
 
@@ -534,7 +565,11 @@ def oswalk_batchprocess_mip(main_dir):
                     arr_mip = np.max(read_image, axis=0)  # create MIP
                     # arr_mip_wo_bg_sub = np.max(read_image, axis=0) #create MIP
                     # arr_mip = median_bg_subtraction(arr_mip_wo_bg_sub)
-                    for ch_name in channel_names:  # save mip array in right directory with correct channel name
+                    for (
+                        ch_name
+                    ) in (
+                        channel_names
+                    ):  # save mip array in right directory with correct channel name
                         if ch_name.casefold() in og_name.casefold():
                             dest = os.path.join(root, ch_name.casefold() + "_mip")
                             if not os.path.exists(dest):  # check if the dest exists
@@ -545,7 +580,9 @@ def oswalk_batchprocess_mip(main_dir):
                             # so recast the ds image to the original datatype
                             img_mip = np.round(arr_mip).astype(read_image.dtype)
 
-                            if og_name.endswith("_MMStack"):  # remove 'MMStack' in saved name
+                            if og_name.endswith(
+                                "_MMStack"
+                            ):  # remove 'MMStack' in saved name
                                 save_name = og_name[: -len("_MMStack")] + "_mip." + ext
                             else:
                                 save_name = og_name + "_mip." + ext
@@ -582,7 +619,9 @@ def img_stitcher_2D(global_coords_px, img_list):
     ax1_max = img_width + np.max(ax1_offset)
 
     # create empty stitched image
-    stitched_image = np.zeros([ax0_max, ax1_max], dtype=og_datatype)  # rows-height, cols-width
+    stitched_image = np.zeros(
+        [ax0_max, ax1_max], dtype=og_datatype
+    )  # rows-height, cols-width
     stitched_image_bg_sub = np.zeros_like(stitched_image)
 
     # bg subtract all images to be stitched
@@ -593,7 +632,9 @@ def img_stitcher_2D(global_coords_px, img_list):
     # stitch images
     for i, (h0, w0) in enumerate(zip(ax0_offset, ax1_offset)):
         stitched_image[h0 : h0 + img_height, w0 : w0 + img_width] = img_list[i]
-        stitched_image_bg_sub[h0 : h0 + img_height, w0 : w0 + img_width] = img_list_bg_sub[i]
+        stitched_image_bg_sub[h0 : h0 + img_height, w0 : w0 + img_width] = (
+            img_list_bg_sub[i]
+        )
     # return (np.round(stitched_image).astype(og_datatype), np.round(stitched_image_bg_sub).astype(og_datatype))
     # additional check
     if stitched_image.dtype != og_datatype:
@@ -635,12 +676,16 @@ def img_stitcher_3D(global_coords_px, img_list, bg_sub=True):
     # print(f'ax0_max: {ax0_max}, ax1_max: {ax1_max}, z_max: {z_max}')
 
     # create empty stitched image, to save memory this is created as the og_dtype
-    stitched_image = np.zeros([z_max, ax0_max, ax1_max], dtype=og_datatype)  # plane - z, rows-height, cols-width
+    stitched_image = np.zeros(
+        [z_max, ax0_max, ax1_max], dtype=og_datatype
+    )  # plane - z, rows-height, cols-width
 
     if not bg_sub:
         # stitch images
         for i, (z0, h0, w0) in enumerate(zip(z_offset, ax0_offset, ax1_offset)):
-            stitched_image[z0 : z0 + z_width[i], h0 : h0 + img_height, w0 : w0 + img_width] = img_list[i]
+            stitched_image[
+                z0 : z0 + z_width[i], h0 : h0 + img_height, w0 : w0 + img_width
+            ] = img_list[i]
     else:  # bg_sub
         # bg subtract all images to be stitched
         img_list_bg_sub = []
@@ -648,7 +693,9 @@ def img_stitcher_3D(global_coords_px, img_list, bg_sub=True):
             img_list_bg_sub.append(median_bg_subtraction(img))
         # stitch images
         for i, (z0, h0, w0) in enumerate(zip(z_offset, ax0_offset, ax1_offset)):
-            stitched_image[z0 : z0 + z_width[i], h0 : h0 + img_height, w0 : w0 + img_width] = img_list_bg_sub[i]
+            stitched_image[
+                z0 : z0 + z_width[i], h0 : h0 + img_height, w0 : w0 + img_width
+            ] = img_list_bg_sub[i]
 
     # additional check
     if stitched_image.dtype != og_datatype:

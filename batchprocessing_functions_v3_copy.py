@@ -84,7 +84,7 @@ def find_pos_tp_in_filename(file_name):
     Returns int: file_name_pos, file_name_tp"""
     file_name_wo_ext = file_name.split(".")[0]
     file_name_split_list = file_name_wo_ext.split("_")
-    file_name_tp, file_name_pos = -1, -1
+    file_name_pos, file_name_tp = -1, -1
     for substr in file_name_split_list:
         substr = substr.casefold()
         if "pos" in substr:
@@ -96,7 +96,7 @@ def find_pos_tp_in_filename(file_name):
         print("Exiting...")
         exit()
     else:
-        return (file_name_tp, file_name_pos)
+        return (file_name_pos, file_name_tp)
 
 
 def find_nearest_target_file(start_path, target):

@@ -73,17 +73,47 @@ def reorder_files_by_pos_tp(file_list):
     raw_pos_arr = np.zeros_like(file_list_arr, dtype=int)
     raw_tp_arr = np.zeros_like(file_list_arr, dtype=int)
     for i, file_name in enumerate(file_list_arr):
-        file_name_wo_ext = file_name.split(".")[0]
-        file_name_list = file_name_wo_ext.split("_")
-        for substr in file_name_list:
-            substr = substr.casefold()
-            if "pos" in substr:
-                raw_pos_arr[i] = int(substr.removeprefix("pos"))
-            if "timepoint" in substr:
-                raw_tp_arr[i] = int(substr.removeprefix("timepoint"))
+        raw_pos_arr[i], raw_tp_arr[i] = find_pos_tp_in_filename(file_name)
     pos_max = np.max(raw_pos_arr)  # get pos_max
     ind = np.lexsort((raw_pos_arr, raw_tp_arr))  # Sort by tp, then by pos
     return file_list_arr[ind]
+
+def find_pos_tp_in_filename(file_name):
+    """finds the 'timepoint' and 'pos' in the filename (must be separated by '_')
+    Returns int: file_name_pos, file_name_tp"""
+    file_name_wo_ext = file_name.split(".")[0]
+    file_name_split_list = file_name_wo_ext.split("_")
+    file_name_tp, file_name_pos = -1, -1
+    for substr in file_name_split_list:
+        substr = substr.casefold()
+        if "pos" in substr:
+            file_name_pos = int(substr.removeprefix("pos"))
+        if "timepoint" in substr:
+            file_name_tp = int(substr.removeprefix("timepoint"))
+    if (file_name_pos == -1) or (file_name_tp == -1):
+        print(f"ParsingError: Couldn't find tp and pos from: {file_name}")
+        print("Exiting...")
+        exit()
+    else:
+        return (file_name_tp, file_name_pos)
+
+def find_nearest_target_file(start_path, target):
+    """finds the target file in the directory tree starting from start_path, returns the path of the file if found, else None"""
+    found_file_path = None
+    while True:
+        if os.path.isfile(os.path.join(start_path, target)):
+            # found target
+            print(f"found {target} at:" + start_path)
+            found_file_path = os.path.join(start_path, target)
+            break
+        elif os.path.dirname(start_path) == start_path:  # reached root
+            # not found
+            print(f"Warning: Couldn't find {target} file in the directory structure of {start_path}")
+            break
+        start_path = os.path.dirname(start_path)
+        
+    return found_file_path
+
 
 
 # Important functions
@@ -301,22 +331,6 @@ def find_lsm_scope(img_h, img_w):
             exit()
     return (ds_factor_h, ds_factor_w)
 
-def find_nearest_target_file(start_path, target):
-    """finds the target file in the directory tree starting from start_path, returns the path of the file if found, else None"""
-    found_file_path = None
-    while True:
-        if os.path.isfile(os.path.join(start_path, target)):
-            # found target
-            print(f"found {target} at:" + start_path)
-            found_file_path = os.path.join(start_path, target)
-            break
-        elif os.path.dirname(start_path) == start_path:  # reached root
-            # not found
-            print(f"Warning: Couldn't find {target} file in the directory structure of {start_path}")
-            break
-        start_path = os.path.dirname(start_path)
-        
-    return found_file_path
         
 def find_stage_coords_n_pixel_width_from_2D_images(ch_flags, ch_paths, ch_img_lists):
     """Send channel flags and paths in the order [bf, gfp, rfp]"""

@@ -21,7 +21,7 @@ while action_flag == 0:
     """This code will find Max intensity projections of `z-stacks` and stitch the resulting images using the metadata found in `notes`
         Run this *ONLY* on the original acquisition folder of LSM images as it uses the folder structure to find the images
         Warning: This code ONLY works with single channel z-stack tiff images. It will give unpredictable results with >3 dimensions
-        Number of fish, positions and timepoints can be different in each acquisition folder, but channel names should be consistent
+        Number of fish, positions and timepoints can be different in each folder, but channel names should be consistent
          
         Do you want to:
             1. Find Max Intensity Projection AND Stitch (default)
@@ -36,8 +36,6 @@ while action_flag == 0:
     else:
         action_flag = 0
         print("Invalid value: Re-Enter")
-
-
 
 ## find MIP
 if action_flag != 3: # find MIP
@@ -169,8 +167,9 @@ if action_flag != 3: # find MIP
                                                 dst=os.path.join(trg_folder, save_name))
 
 if action_flag == 3:  # only stitch, so take the input from the user as it wasn't taken before
-    new_trg = os.path.normpath(input("""Enter the folder with images to stitch 
-                                     (Note: it must have the notes.txt, can have multiple `Acquisition` folders):\n"""))
+    new_trg = os.path.normpath(
+        input("""Enter the folder with images to stitch:
+              Note- it must have the notes.txt, can have multiple `Acquisition` folders\n"""))
     acq_list = [acq for acq in os.listdir(new_trg) if os.path.isdir(os.path.join(new_trg, acq)) and 'Acquisition' in acq]
     acq_list = natsorted(acq_list)
 

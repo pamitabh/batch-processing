@@ -35,32 +35,11 @@ print(f"Found these fish data:\n{main_dir_list}")
 
 diff_savedir_flag = (input("Do you want to save the images in a different folder? (y/[n])") or "n").casefold() == "y"
 if diff_savedir_flag:
-    print(
-        """You have chosen to save stitched images in a different directory, 
-        give ONE fish folder at a time to prevent overwriting."""
-    )
-    save_dir = os.path.normpath(input("Enter the save dir: "))
+    user_save_dir = os.path.normpath(input("Enter the save dir: "))
+    new_save_dir = os.path.join(user_save_dir, f"{os.path.basename(top_dir)}_3D_stitched")
+    bpf.check_create_save_path(new_save_dir)
 
 bg_sub_flag = (input("Do you want to subtract background? ([y]/n)") or "y").casefold() == "y"
-# pos_input_flag = input('Is the number of pos/regions in each folder above the same? ([y]/n)') or 'y'
-# if pos_input_flag.casefold()=='n':
-#     print('This will give correct results only if the number of pos/regions in each folder is the same.')
-#           Error: Not implemented yet. This only works if the number of pos/regions in each folder is the same.')
-#     exit()
-# if pos_input_flag.casefold()=='y':
-#     pos_max_list = len(main_dir_list)* \
-#     [int(input('Enter number of positions/regions of imaging per timepoint (default=4)') or '4')]
-# else:
-#     pos_max_list = []
-#     while pos_max_list != len(main_dir_list):
-#         pos_max_list = (input('Enter the list of positions/regions separated by space in the above order')).split()
-#         if pos_max_list != len(main_dir_list):
-#             print('entered list length is not same as the number of folders found above. Please re-enter.')
-#             continue
-#         else:
-#             # convert each item to int type
-#             for i in range(len(pos_max_list)):
-#                 pos_max_list[i] = int(pos_max_list[i])
 
 ch_names = ["GFP", "RFP"]
 
@@ -77,7 +56,8 @@ for main_dir in main_dir_list:  # main_dir = location of Directory containing ON
             pos_max = bpf.pos_max
             print(f"Stitching {ch_name} 3D images...")
             if diff_savedir_flag:
-                save_path = os.path.join(save_dir, f"{ch_name.casefold()}_zstack_stitched")
+                save_subdir = main_dir.replace(top_dir, "").strip(os.sep) #find and remove the top_dir from the main_dir
+                save_path = os.path.join(new_save_dir, save_subdir, f"{ch_name.casefold()}_zstack_stitched")
             else:
                 save_path = os.path.join(ch_3Dimg_path, f"{ch_name.casefold()}_zstack_stitched")
             bpf.check_create_save_path(save_path)

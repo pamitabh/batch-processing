@@ -80,7 +80,8 @@ print(f"Found these fish data:\n{main_dir_list}")
 
 ch_names = ["BF", "GFP_mip", "RFP_mip"]
 
-for main_dir in main_dir_list:  # main_dir = location of Directory containing ONE fish data
+# main_dir = location of Directory containing ONE fish data
+for main_dir in main_dir_list:
     print(f"Processing {main_dir}...")
     ch_2Dimg_flags, ch_2Dimg_paths, ch_2Dimg_lists = bpf.find_2D_images(main_dir)
     stage_coords = bpf.find_stage_coords_n_pixel_width_from_2D_images(ch_2Dimg_flags, ch_2Dimg_paths, ch_2Dimg_lists)

@@ -118,6 +118,7 @@ def find_nearest_target_file(start_path, target):
 
     return found_file_path
 
+
 def find_multi_subdir(subdir_path, subdir_name):
     """finds if there are multiple subdirectories at 'subdir_path' with the name 'subdir_name'"""
     sub_dir = os.listdir(subdir_path)
@@ -130,6 +131,7 @@ def find_multi_subdir(subdir_path, subdir_name):
                 multi_subdir_flag = True
                 break
     return multi_subdir_flag
+
 
 # Important functions
 
@@ -167,8 +169,8 @@ def single_acquisition_downsample(acq_path, new_trg_path, n):
             shutil.copy(os.path.join(acq_path, filename), new_trg_path)
             print(f"copied text file: {filename}")
 
-    #find if multiple `fish` folders are present at `acq_path`
-    multi_fish_flag = find_multi_subdir(subdir_path=acq_path, subdir_name='fish')
+    # find if multiple `fish` folders are present at `acq_path`
+    multi_fish_flag = find_multi_subdir(subdir_path=acq_path, subdir_name="fish")
 
     for root, subfolders, filenames in os.walk(acq_path):
         for filename in filenames:
@@ -183,7 +185,7 @@ def single_acquisition_downsample(acq_path, new_trg_path, n):
                 if multi_fish_flag:  # save the ds images in fish folder
                     fish_num = og_name[og_name.casefold().find("fish") + len("fish")]
                     save_path = os.path.join(new_trg_path, "fish" + str(fish_num))
-                    check_create_save_path(save_path) # make fish num folders
+                    check_create_save_path(save_path)  # make fish num folders
                 else:
                     save_path = new_trg_path
 

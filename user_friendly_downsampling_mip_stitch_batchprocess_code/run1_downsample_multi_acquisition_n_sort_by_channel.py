@@ -6,7 +6,7 @@ from pathlib import Path
 # import skimage
 # import tifffile as tiff
 # import re
-import batchprocessing_functions_v3 as bpf
+import batchprocessing_functions_v4 as bpf
 
 # %%
 action_flag = 0
@@ -46,11 +46,11 @@ if n < 1:
     exit()
 
 # single_fish_flag is used to find if single acquisitions have single fish or not
-single_fish_input = input("Is there ONLY 1 fish per Acquisition? ([y]/n):") or "y"
-if single_fish_input.casefold() not in ("y", "n"):
-    print("User Error: Need to enter 'y' or 'n'. Exiting")
-    exit()
-single_fish_flag = True if single_fish_input.casefold() == "y" else False
+# single_fish_input = input("Is there ONLY 1 fish per Acquisition? ([y]/n):") or "y"
+# if single_fish_input.casefold() not in ("y", "n"):
+#     print("User Error: Need to enter 'y' or 'n'. Exiting")
+#     exit()
+# single_fish_flag = True if single_fish_input.casefold() == "y" else False
 
 # %%
 new_folder_name = f"{os.path.split(src)[-1]}_downsampled_n{n}"
@@ -62,17 +62,20 @@ if action_flag != 3:  # Downsample
     print("Downsampling images..")
     # oswalk to find all acquisition folders
     for root, subfolders, filenames in os.walk(src):
-        # print(subfolders)
         for sub in subfolders:  # separate by acquisitions
             if "acquisition" in sub.casefold():
-                single_acq_path = os.path.join(root, sub)
                 single_trg_path = root.replace(src, trg_path)
 
-                # copy entire folder structure
-                path = Path(single_trg_path)
+                multi_acq_folder_flag = bpf.find_multi_subdir(subdir_path=root, subdir_name='acquisition')
+                if multi_acq_folder_flag:
+                    # print("Multiple acquisition folders found at the same level...")
+                    single_trg_path = os.path.join(single_trg_path, sub)
+
+                single_acq_path = os.path.join(root, sub)
+                path = Path(single_trg_path) # copy entire folder structure
                 path.mkdir(parents=True, exist_ok=True)
 
-                bpf.single_acquisition_downsample(single_acq_path, single_trg_path, single_fish_flag, n)
+                bpf.single_acquisition_downsample(single_acq_path, single_trg_path, n)
 
 if action_flag != 2:  # Sort by channel
     print("Sorting images by channel..")

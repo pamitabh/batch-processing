@@ -17,7 +17,7 @@
 
 import os
 
-import batchprocessing_functions_v3 as bpf
+import batchprocessing_functions_v4 as bpf
 import skimage
 import tifffile as tiff
 from natsort import natsorted

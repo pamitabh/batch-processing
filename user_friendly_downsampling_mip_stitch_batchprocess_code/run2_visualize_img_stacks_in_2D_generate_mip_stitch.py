@@ -23,9 +23,6 @@ import tifffile as tiff
 from natsort import natsorted
 from tqdm import tqdm
 
-# import pandas as pd
-# import matplotlib.pyplot as plt
-
 action_flag = 0
 
 while action_flag == 0:

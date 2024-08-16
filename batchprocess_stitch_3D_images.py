@@ -13,7 +13,7 @@ import tifffile as tiff
 from natsort import natsorted
 from tqdm import tqdm
 
-import batchprocessing_functions_v3_copy as bpf
+import user_friendly_downsampling_mip_stitch_batchprocess_code.batchprocessing_functions_v4 as bpf
 
 print(
     """Instructions for stitching:

@@ -7,21 +7,14 @@
 # License: GNU GPL v3.0
 # Comment: it is scope agnostic (KLA/WIL LSM) and os agnostic
 
+import configparser
 import os
+
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-# from scipy import ndimage as ndi
-# import pickle
 import skimage
-from PIL import Image
 import tifffile as tiff
 from natsort import natsorted
 from tqdm import tqdm
-
-import configparser
-import re
-
 
 print("Instructions for stitching:")
 print("Image stitching works by reading stage positions from the 'notes.txt' file generated during acquisition")
@@ -98,7 +91,7 @@ def remove_non_image_files(big_list, root_path):
     for val in big_list:
         if os.path.isfile(os.path.join(root_path, val)): #file check
             filename_list = val.split('.')
-            og_name = filename_list[0] 
+            _og_name = filename_list[0] 
             ext = filename_list[-1] 
             if (ext=="tif" or ext=="tiff"): #img check
                 small_list.append(val)

@@ -16,17 +16,16 @@ import contextlib
 import json
 import os
 import pathlib
-import psutil
 import shutil
 from ast import literal_eval
 from configparser import ConfigParser
 from enum import Enum
 
 import numpy as np
+import psutil
 import skimage.io
 from natsort import natsorted
 from tifffile import TiffFile
-
 
 RE_NUM = "[0-9]"
 

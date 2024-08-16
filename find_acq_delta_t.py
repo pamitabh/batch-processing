@@ -1,11 +1,11 @@
 import os
-import pandas as pd
 import pathlib
 from copy import deepcopy
 
+import pandas as pd
 from natsort import natsorted
 
-import files
+import misc_functions_rplab
 
 #raw string path to Acquisition folder
 acq_folder_path = input("Enter the path of Acquisition folder for original images: ")
@@ -65,7 +65,7 @@ for fish in natsorted([dir for dir in acq_folder.iterdir() if dir.is_dir()]):
                 channel_time = {}
                 for tp in natsorted([dir for dir in channel_folder.iterdir() if dir.is_dir()]):
                     tp_folder = channel_folder.joinpath(tp)
-                    meta = files.MMMetadata(tp_folder)
+                    meta = misc_functions_rplab.MMMetadata(tp_folder)
                     image_meta = meta.get_image_metadata(0)
                     try:
                         time_received = image_meta.image_metadata["ReceivedTime"]

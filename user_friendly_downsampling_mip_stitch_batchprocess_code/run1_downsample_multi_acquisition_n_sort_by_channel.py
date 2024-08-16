@@ -2,10 +2,6 @@ import os
 import shutil
 from pathlib import Path
 
-# import numpy as np
-# import skimage
-# import tifffile as tiff
-# import re
 import batchprocessing_functions_v4 as bpf
 
 # %%

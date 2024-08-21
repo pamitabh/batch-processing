@@ -57,9 +57,9 @@ for main_dir in main_dir_list:  # main_dir = location of Directory containing ON
             print(f"Stitching {ch_name} 3D images...")
             if diff_savedir_flag:
                 save_subdir = main_dir.replace(top_dir, "").strip(os.sep) #find and remove the top_dir from the main_dir
-                save_path = os.path.join(new_save_dir, save_subdir, f"{ch_name.casefold()}_zstack_stitched")
+                save_path = os.path.join(new_save_dir, save_subdir, f"{ch_name.casefold()}_3D_stitched")
             else:
-                save_path = os.path.join(ch_3Dimg_path, f"{ch_name.casefold()}_zstack_stitched")
+                save_path = os.path.join(ch_3Dimg_path, f"{ch_name.casefold()}_3D_stitched")
             bpf.check_create_save_path(save_path)
 
             for i in tqdm(range(len(ch_3Dimg_list) // pos_max)):  # run once per timepoint
@@ -79,8 +79,8 @@ for main_dir in main_dir_list:  # main_dir = location of Directory containing ON
                 stitched_image = bpf.img_stitcher_3D(global_coords_px, img_list_per_tp, bg_sub_flag)
 
                 if bg_sub_flag:
-                    save_name = f"Timepoint{i+1}_{ch_name}_stitched_zstack_bg_sub.tif"
+                    save_name = f"Timepoint{i+1}_{ch_name}_stitched_3D_bg_sub.tif"
                 else:
-                    save_name = f"Timepoint{i+1}_{ch_name}_stitched_zstack.tif"
+                    save_name = f"Timepoint{i+1}_{ch_name}_stitched_3D.tif"
 
                 tiff.imwrite(os.path.join(save_path, save_name), stitched_image, compression="LZW")

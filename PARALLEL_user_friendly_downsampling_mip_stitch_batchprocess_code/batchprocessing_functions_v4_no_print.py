@@ -13,7 +13,7 @@ import skimage
 import tifffile as tiff
 from joblib import Parallel, delayed
 from natsort import natsorted
-from tqdm import tqdm
+from tqdm.contrib import tzip
 
 # from scipy.spatial import distance
 # import plotly.express as px
@@ -39,7 +39,7 @@ def check_create_save_path(save_path):
         os.makedirs(save_path)
         # print(f"Directory '{os.path.basename(save_path)}' created")
     # else:
-        # print("Save path exists")
+    # print("Save path exists")
 
 
 def remove_non_image_files(big_list, root_path):
@@ -203,11 +203,7 @@ def single_acquisition_downsample_parallel(acq_path, new_trg_path, n, num_cores)
     def joblib_loop_downsample(filepath_list, filename_list):
         Parallel(n_jobs=num_cores)(
             delayed(single_image_downsample)(filepath=filepath, filename=filename)
-            for (filepath, filename) in tqdm(
-                zip(filepath_list, filename_list),
-                # token=token_custom,
-                # chat_id=chatid_custom,
-            )
+            for (filepath, filename) in tzip(filepath_list, filename_list)
         )
 
     filename_list, filepath_list = [], []
@@ -622,11 +618,7 @@ def oswalk_batchprocess_mip_parallel(main_dir, num_cores):
     def joblib_loop_mip(filename_list, rootpath_list):
         Parallel(n_jobs=num_cores)(
             delayed(single_image_mip)(filename=filename, rootpath=rootpath)
-            for (filename, rootpath) in tqdm(
-                zip(filename_list, rootpath_list),
-                # token=token_custom,
-                # chat_id=chatid_custom,
-            )
+            for (filename, rootpath) in tzip(filename_list, rootpath_list)
         )
 
     filename_list, rootpath_list = [], []

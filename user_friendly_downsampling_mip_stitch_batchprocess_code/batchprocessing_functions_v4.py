@@ -658,7 +658,7 @@ def img_stitcher_2D(global_coords_px, img_list):
     return (stitched_image, stitched_image_bg_sub)
 
 
-def img_stitcher_3D(global_coords_px, img_path_list, bg_sub=True):
+def img_stitcher_3D(global_coords_px, img_path_list, bg_sub=True, save_path=None, compression_type=None):
     """Accept a list of 3D image paths in img_path_list and use global_coords_px to stitch images.
     Returns: 3D np.array containing the stitched image.
     """
@@ -722,4 +722,9 @@ def img_stitcher_3D(global_coords_px, img_path_list, bg_sub=True):
     if stitched_image.dtype != og_datatype:
         raise TypeError("Datatype is not preserved.. Something wrong.. Check code")
 
-    return stitched_image
+    # Save the stitched image if save_path is provided
+    if save_path:
+        tiff.imwrite(save_path, data=stitched_image, compression=compression_type)
+        return None
+    else:
+        return stitched_image

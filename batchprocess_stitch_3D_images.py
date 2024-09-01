@@ -36,20 +36,35 @@ for root, subfolders, _ in os.walk(top_dir):
 main_dir_list = natsorted(main_dir_list)
 print(f"Found these fish data:\n{main_dir_list}")
 
-diff_savedir_flag = (input("Do you want to save the images in a different folder? (y/[n])") or "n").casefold() == "y"
+diff_savedir_flag = (
+    input("Do you want to save the images in a different folder? (y/[n])") or "n"
+).casefold() == "y"
 if diff_savedir_flag:
     user_save_dir = os.path.normpath(input("Enter the save dir: "))
-    new_save_dir = os.path.join(user_save_dir, f"{os.path.basename(top_dir)}_3D_stitched")
+    new_save_dir = os.path.join(
+        user_save_dir, f"{os.path.basename(top_dir)}_3D_stitched"
+    )
     bpf.check_create_save_path(new_save_dir)
 
-bg_sub_flag = (input("Do you want to subtract background? ([y]/n)") or "y").casefold() == "y"
+bg_sub_flag = (
+    input("Do you want to subtract background? (y/[n])") or "n"
+).casefold() == "y"
+
+# get compression type from user
+compression_type = (
+    input("Enter the compression type ([Deflate], LZW, LZMA, Zstd): ") or "Deflate"
+)
 
 ch_names = ["GFP", "RFP"]
 
-for main_dir in main_dir_list:  # main_dir = location of Directory containing ONE fish data
+for (
+    main_dir
+) in main_dir_list:  # main_dir = location of Directory containing ONE fish data
     print(f"Processing {main_dir}...")
     ch_3Dimg_flags, ch_3Dimg_paths, ch_3Dimg_lists = bpf.find_3D_images(main_dir)
-    stage_coords = bpf.find_stage_coords_n_pixel_width_from_3D_images(ch_3Dimg_flags, ch_3Dimg_paths, ch_3Dimg_lists)
+    stage_coords = bpf.find_stage_coords_n_pixel_width_from_3D_images(
+        ch_3Dimg_flags, ch_3Dimg_paths, ch_3Dimg_lists
+    )
     global_coords_px = bpf.global_coordinate_changer(stage_coords)
 
     for ch_name, ch_3Dimg_flag, ch_3Dimg_path, ch_3Dimg_list in zip(
@@ -59,36 +74,40 @@ for main_dir in main_dir_list:  # main_dir = location of Directory containing ON
             pos_max = bpf.pos_max
             print(f"Stitching {ch_name} 3D images...")
             if diff_savedir_flag:
-                save_subdir = main_dir.replace(top_dir, "").strip(os.sep) #find and remove the top_dir from the main_dir
-                save_path = os.path.join(new_save_dir, save_subdir, f"{ch_name.casefold()}_3D_stitched")
+                save_subdir = main_dir.replace(top_dir, "").strip(
+                    os.sep
+                )  # find and remove the top_dir from the main_dir
+                save_path = os.path.join(
+                    new_save_dir, save_subdir, f"{ch_name.casefold()}_3D_stitched"
+                )
             else:
-                save_path = os.path.join(ch_3Dimg_path, f"{ch_name.casefold()}_3D_stitched")
+                save_path = os.path.join(
+                    ch_3Dimg_path, f"{ch_name.casefold()}_3D_stitched"
+                )
             bpf.check_create_save_path(save_path)
 
-            for i in tqdm(range(len(ch_3Dimg_list) // pos_max)):  # run once per timepoint
+            for i in tqdm(
+                range(len(ch_3Dimg_list) // pos_max)
+            ):  # run once per timepoint
                 # print(f"tp: {i+1}")
                 img_path_list_per_tp = [0] * pos_max
                 for j in range(0, pos_max):
                     loc = i * pos_max + j
                     # print(loc)
-                    # save all pos images in a list
-                    img_path_list_per_tp[j] = os.path.join(ch_3Dimg_path, ch_3Dimg_list[loc])
-                    # img = tiff.imread(os.path.join(ch_3Dimg_path, ch_3Dimg_list[loc]))
-                    # if len(img.shape) != 3:
-                    #     print(f"{ch_3Dimg_list[loc]}: Image shape is not 3D... something is wrong. exiting...")
-                    #     exit()
-                    # else:
-                    #     img_list_per_tp[j] = img
-
-                stitched_image = bpf.img_stitcher_3D(global_coords_px, img_path_list_per_tp, bg_sub_flag)
+                    # save all pos image_path in a list
+                    img_path_list_per_tp[j] = os.path.join(
+                        ch_3Dimg_path, ch_3Dimg_list[loc]
+                    )
 
                 if bg_sub_flag:
                     save_name = f"Timepoint{i+1}_{ch_name}_stitched_3D_bg_sub.tif"
                 else:
                     save_name = f"Timepoint{i+1}_{ch_name}_stitched_3D.tif"
 
-                tiff.imwrite(os.path.join(save_path, save_name), stitched_image, compression="LZW")
-                # np.save(os.path.join(save_path, save_name), stitched_image)
-
-                # pickle.dump(data, gzip.open('data.pkl.gz', 'wb'))
-                # pickle.dump(stitched_image, lzma.open(os.path.join(save_path, save_name+'.pkl.lzma'), 'wb')) #same size as LZW tiff, but works on low ram
+                bpf.img_stitcher_3D(
+                    global_coords_px,
+                    img_path_list_per_tp,
+                    bg_sub_flag,
+                    os.path.join(save_path, save_name),
+                    compression_type,
+                )

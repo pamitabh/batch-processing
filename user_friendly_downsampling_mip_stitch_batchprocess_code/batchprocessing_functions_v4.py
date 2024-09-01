@@ -658,20 +658,28 @@ def img_stitcher_2D(global_coords_px, img_list):
     return (stitched_image, stitched_image_bg_sub)
 
 
-def img_stitcher_3D(global_coords_px, img_list, bg_sub=True):
-    """accept a list of 3D images in img_list and use stage_coords read from notes.txt to stitch images
-    Returns: 3D np.array containing the stitched image
+def img_stitcher_3D(global_coords_px, img_path_list, bg_sub=True):
+    """Accept a list of 3D image paths in img_path_list and use global_coords_px to stitch images.
+    Returns: 3D np.array containing the stitched image.
     """
     if findscope_flag == 0:
         print("ERROR: Couldn't find the LSM scope")
         exit()
-    og_datatype = img_list[0].dtype
-    img_height = np.shape(img_list[0])[1]
-    img_width = np.shape(img_list[0])[2]
-    z_width = [np.shape(img_list[i])[0] for i in range(pos_max)]
 
-    # stitched image ax0 is going down, ax1 is to the right
-    ax0_offset, ax1_offset, z_offset = [], [], []
+    # Read the first image to get the shape and datatype
+    first_img = tiff.imread(img_path_list[0])
+    if len(first_img.shape) != 3:
+        print(
+            f"{img_path_list[0]}: Image shape is not 3D... something is wrong. exiting..."
+        )
+        exit()
+
+    og_datatype = first_img.dtype
+    img_height = first_img.shape[1]
+    img_width = first_img.shape[2]
+    z_width = [tiff.imread(img_path).shape[0] for img_path in img_path_list]
+
+    # Determine offsets based on the scope type
     if findscope_flag == 2:  # wil lsm, stitch horizontally
         ax0_offset = global_coords_px[:, 0] * -1  # ax0 = -Global X_DV
         ax1_offset = global_coords_px[:, 1]  # ax1 = Global Y_AP
@@ -680,40 +688,37 @@ def img_stitcher_3D(global_coords_px, img_list, bg_sub=True):
         ax1_offset = global_coords_px[:, 0]  # ax1 = Global X_DV
     z_offset = global_coords_px[:, 2]  # ax2 = Global Z_lr
 
-    # find offset from min
+    # Find offset from min
     ax0_offset = np.ceil(ax0_offset - np.min(ax0_offset)).astype(int)
     ax1_offset = np.ceil(ax1_offset - np.min(ax1_offset)).astype(int)
     z_offset = np.ceil(z_offset - np.min(z_offset)).astype(int)
 
-    # find max of each axis
+    # Find max of each axis
     ax0_max = img_height + np.max(ax0_offset)
     ax1_max = img_width + np.max(ax1_offset)
     z_max = np.max(z_width) + np.max(z_offset)
-    # print(f'ax0_max: {ax0_max}, ax1_max: {ax1_max}, z_max: {z_max}')
 
-    # create empty stitched image, to save memory this is created as the og_dtype
-    stitched_image = np.zeros(
-        [z_max, ax0_max, ax1_max], dtype=og_datatype
-    )  # plane - z, rows-height, cols-width
+    # Create empty stitched image
+    stitched_image = np.zeros([z_max, ax0_max, ax1_max], dtype=og_datatype)
 
-    if not bg_sub:
-        # stitch images
-        for i, (z0, h0, w0) in enumerate(zip(z_offset, ax0_offset, ax1_offset)):
-            stitched_image[
-                z0 : z0 + z_width[i], h0 : h0 + img_height, w0 : w0 + img_width
-            ] = img_list[i]
-    else:  # bg_sub
-        # bg subtract all images to be stitched
-        img_list_bg_sub = []
-        for img in img_list:
-            img_list_bg_sub.append(median_bg_subtraction(img))
-        # stitch images
-        for i, (z0, h0, w0) in enumerate(zip(z_offset, ax0_offset, ax1_offset)):
-            stitched_image[
-                z0 : z0 + z_width[i], h0 : h0 + img_height, w0 : w0 + img_width
-            ] = img_list_bg_sub[i]
+    # Process and stitch images one by one
+    for i, img_path in enumerate(img_path_list):
+        img = tiff.imread(img_path)
+        if len(img.shape) != 3:
+            print(
+                f"{img_path}: Image shape is not 3D... something is wrong. exiting..."
+            )
+            exit()
 
-    # additional check
+        if bg_sub:
+            img = median_bg_subtraction(img)
+
+        z0, h0, w0 = z_offset[i], ax0_offset[i], ax1_offset[i]
+        stitched_image[
+            z0 : z0 + z_width[i], h0 : h0 + img_height, w0 : w0 + img_width
+        ] = img
+
+    # Additional check
     if stitched_image.dtype != og_datatype:
         raise TypeError("Datatype is not preserved.. Something wrong.. Check code")
 

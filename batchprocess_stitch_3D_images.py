@@ -13,6 +13,9 @@ import tifffile as tiff
 from natsort import natsorted
 from tqdm import tqdm
 
+# import numpy as np
+# import pickle
+# import lzma
 import user_friendly_downsampling_mip_stitch_batchprocess_code.batchprocessing_functions_v4 as bpf
 
 print(
@@ -64,19 +67,20 @@ for main_dir in main_dir_list:  # main_dir = location of Directory containing ON
 
             for i in tqdm(range(len(ch_3Dimg_list) // pos_max)):  # run once per timepoint
                 # print(f"tp: {i+1}")
-                img_list_per_tp = [0] * pos_max
+                img_path_list_per_tp = [0] * pos_max
                 for j in range(0, pos_max):
                     loc = i * pos_max + j
                     # print(loc)
                     # save all pos images in a list
-                    img = tiff.imread(os.path.join(ch_3Dimg_path, ch_3Dimg_list[loc]))
-                    if len(img.shape) != 3:
-                        print(f"{ch_3Dimg_list[loc]}: Image shape is not 3D... something is wrong. exiting...")
-                        exit()
-                    else:
-                        img_list_per_tp[j] = img
+                    img_path_list_per_tp[j] = os.path.join(ch_3Dimg_path, ch_3Dimg_list[loc])
+                    # img = tiff.imread(os.path.join(ch_3Dimg_path, ch_3Dimg_list[loc]))
+                    # if len(img.shape) != 3:
+                    #     print(f"{ch_3Dimg_list[loc]}: Image shape is not 3D... something is wrong. exiting...")
+                    #     exit()
+                    # else:
+                    #     img_list_per_tp[j] = img
 
-                stitched_image = bpf.img_stitcher_3D(global_coords_px, img_list_per_tp, bg_sub_flag)
+                stitched_image = bpf.img_stitcher_3D(global_coords_px, img_path_list_per_tp, bg_sub_flag)
 
                 if bg_sub_flag:
                     save_name = f"Timepoint{i+1}_{ch_name}_stitched_3D_bg_sub.tif"
@@ -84,3 +88,7 @@ for main_dir in main_dir_list:  # main_dir = location of Directory containing ON
                     save_name = f"Timepoint{i+1}_{ch_name}_stitched_3D.tif"
 
                 tiff.imwrite(os.path.join(save_path, save_name), stitched_image, compression="LZW")
+                # np.save(os.path.join(save_path, save_name), stitched_image)
+
+                # pickle.dump(data, gzip.open('data.pkl.gz', 'wb'))
+                # pickle.dump(stitched_image, lzma.open(os.path.join(save_path, save_name+'.pkl.lzma'), 'wb')) #same size as LZW tiff, but works on low ram

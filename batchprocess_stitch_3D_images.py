@@ -9,7 +9,6 @@
 
 import os
 
-import tifffile as tiff
 from natsort import natsorted
 from tqdm import tqdm
 

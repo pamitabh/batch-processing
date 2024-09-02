@@ -2,12 +2,12 @@
 
 # %%
 # from pathlib import Path
-import shutil
 import os
-import numpy as np
+import re
+import shutil
+
 import skimage
 import tifffile as tiff
-import re
 
 # %%
 src, trg = '', ''
@@ -66,7 +66,7 @@ for filename in files:
 
 # %%
 n = input('Enter downscaling factor for x and y dimensions (hit enter for default=4):') or 4
-if type(n)!=int or n<=0:
+if (not isinstance(n, int)) or (n <= 0):
     print('User Error: downscaling factor has to be a positive integer')
     exit()
 

@@ -1,10 +1,10 @@
-from pathlib import Path
-import shutil
 import os
-import numpy as np
+import re
+import shutil
+from pathlib import Path
+
 import skimage
 import tifffile as tiff
-import re
 
 # %%
 # get user input for source and dest

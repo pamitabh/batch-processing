@@ -42,7 +42,7 @@ if n < 1:
     exit()
 elif n == 1:
     print("Downscaling factor is 1, no downscaling will be done but images will be compressed.")
-    print("Images will be saved in '.tif' format with 'Deflate' compression. This should reduce file size by ~ 50%.")
+    print("Images will be saved in '.tif' format with Lossless 'Deflate' compression. This should reduce file size by ~ 50%.")
     user_confirm = input("Do you want to continue? ([y]/n):") or "y"
     if user_confirm.casefold() != "y":
         print("Exiting..")

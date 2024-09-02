@@ -186,15 +186,14 @@ def single_acquisition_downsample_parallel(acq_path, new_trg_path, n, num_cores)
         else:
             save_path = new_trg_path
 
-        if og_name.endswith("_MMStack"):  # remove 'MMStack' in saved name
-            save_name = og_name[: -len("_MMStack")] + "_ds." + ext
-        else:
-            save_name = og_name + "_ds." + ext
-
         if n == 1:  # no downscaling needed
-            shutil.copy(src=filepath, dst=os.path.join(save_path, save_name))
-            # print(f"copied image: {os.path.join(save_path, save_name)}")
-        else:  # downscale
+            img = tiff.imread(filepath)
+            save_name = f"{og_name.replace("_MMStack", "")}.{ext}"
+            # shutil.copy(src=filepath, dst=os.path.join(save_path, save_name))
+            tiff.imwrite(os.path.join(save_path, save_name), data=img, compression='Deflate')
+        
+        else:  # downscale by n
+            save_name = f"{og_name.replace("_MMStack", "")}_ds.{ext}"
             tiff.imwrite(
                 os.path.join(save_path, save_name),
                 read_n_downscale_image(read_path=filepath, n=n),
@@ -692,65 +691,3 @@ def img_stitcher_2D(global_coords_px, img_list):
     if stitched_image.dtype != og_datatype:
         raise TypeError("Datatype is not preserved.. Something wrong.. Check code")
     return (stitched_image, stitched_image_bg_sub)
-
-
-def img_stitcher_3D(global_coords_px, img_list, bg_sub=True):
-    """accept a list of 3D images in img_list and use stage_coords read from notes.txt to stitch images
-    Returns: 3D np.array containing the stitched image
-    """
-    if findscope_flag == 0:
-        print("ERROR: Couldn't find the LSM scope")
-        exit()
-    og_datatype = img_list[0].dtype
-    img_height = np.shape(img_list[0])[1]
-    img_width = np.shape(img_list[0])[2]
-    z_width = [np.shape(img_list[i])[0] for i in range(pos_max)]
-
-    # stitched image ax0 is going down, ax1 is to the right
-    ax0_offset, ax1_offset, z_offset = [], [], []
-    if findscope_flag == 2:  # wil lsm, stitch horizontally
-        ax0_offset = global_coords_px[:, 0] * -1  # ax0 = -Global X_DV
-        ax1_offset = global_coords_px[:, 1]  # ax1 = Global Y_AP
-    elif findscope_flag == 1:  # kla lsm, stitch vertically
-        ax0_offset = global_coords_px[:, 1]  # ax0 = Global Y_AP
-        ax1_offset = global_coords_px[:, 0]  # ax1 = Global X_DV
-    z_offset = global_coords_px[:, 2]  # ax2 = Global Z_lr
-
-    # find offset from min
-    ax0_offset = np.ceil(ax0_offset - np.min(ax0_offset)).astype(int)
-    ax1_offset = np.ceil(ax1_offset - np.min(ax1_offset)).astype(int)
-    z_offset = np.ceil(z_offset - np.min(z_offset)).astype(int)
-
-    # find max of each axis
-    ax0_max = img_height + np.max(ax0_offset)
-    ax1_max = img_width + np.max(ax1_offset)
-    z_max = np.max(z_width) + np.max(z_offset)
-    # print(f'ax0_max: {ax0_max}, ax1_max: {ax1_max}, z_max: {z_max}')
-
-    # create empty stitched image, to save memory this is created as the og_dtype
-    stitched_image = np.zeros(
-        [z_max, ax0_max, ax1_max], dtype=og_datatype
-    )  # plane - z, rows-height, cols-width
-
-    if not bg_sub:
-        # stitch images
-        for i, (z0, h0, w0) in enumerate(zip(z_offset, ax0_offset, ax1_offset)):
-            stitched_image[
-                z0 : z0 + z_width[i], h0 : h0 + img_height, w0 : w0 + img_width
-            ] = img_list[i]
-    else:  # bg_sub
-        # bg subtract all images to be stitched
-        img_list_bg_sub = []
-        for img in img_list:
-            img_list_bg_sub.append(median_bg_subtraction(img))
-        # stitch images
-        for i, (z0, h0, w0) in enumerate(zip(z_offset, ax0_offset, ax1_offset)):
-            stitched_image[
-                z0 : z0 + z_width[i], h0 : h0 + img_height, w0 : w0 + img_width
-            ] = img_list_bg_sub[i]
-
-    # additional check
-    if stitched_image.dtype != og_datatype:
-        raise TypeError("Datatype is not preserved.. Something wrong.. Check code")
-
-    return stitched_image

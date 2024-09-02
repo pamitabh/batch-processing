@@ -22,7 +22,7 @@ import tifffile as tiff
 from natsort import natsorted
 from tqdm import tqdm
 
-import PARALLEL_user_friendly_downsampling_mip_stitch_batchprocess_code.batchprocessing_functions_v4_no_print as bpf
+import PARALLEL_user_friendly_downsampling_mip_stitch_batchprocess_code.batchprocessing_functions_v4_parallel as bpf
 
 action_flag = 0
 

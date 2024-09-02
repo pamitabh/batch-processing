@@ -12,9 +12,6 @@ import os
 from natsort import natsorted
 from tqdm import tqdm
 
-# import numpy as np
-# import pickle
-# import lzma
 import user_friendly_downsampling_mip_stitch_batchprocess_code.batchprocessing_functions_v4 as bpf
 
 print(

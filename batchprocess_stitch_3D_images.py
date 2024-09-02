@@ -12,7 +12,7 @@ import os
 from natsort import natsorted
 from tqdm import tqdm
 
-import user_friendly_downsampling_mip_stitch_batchprocess_code.batchprocessing_functions_v4 as bpf
+import user_friendly_downsampling_mip_stitch_batchprocess_code.batchprocessing_functions_v5 as bpf
 
 print(
     """Instructions for stitching:

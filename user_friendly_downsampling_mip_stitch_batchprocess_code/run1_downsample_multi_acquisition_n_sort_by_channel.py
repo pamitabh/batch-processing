@@ -2,7 +2,7 @@ import os
 import shutil
 from pathlib import Path
 
-import batchprocessing_functions_v4 as bpf
+import user_friendly_downsampling_mip_stitch_batchprocess_code.batchprocessing_functions_v5 as bpf
 
 # %%
 action_flag = 0
@@ -40,6 +40,14 @@ n = int(input("Enter downscaling factor for x and y dimensions (default=4):") or
 if n < 1:
     print("User Error: downscaling factor MUST be a positive integer. Exiting")
     exit()
+elif n == 1:
+    print("Downscaling factor is 1, no downscaling will be done but images will be compressed.")
+    print("Images will be saved in '.tif' format with 'Deflate' compression. This should reduce file size by ~ 50%.")
+    user_confirm = input("Do you want to continue? ([y]/n):") or "y"
+    if user_confirm.casefold() != "y":
+        print("Exiting..")
+        exit()
+    
 
 # single_fish_flag is used to find if single acquisitions have single fish or not
 # single_fish_input = input("Is there ONLY 1 fish per Acquisition? ([y]/n):") or "y"

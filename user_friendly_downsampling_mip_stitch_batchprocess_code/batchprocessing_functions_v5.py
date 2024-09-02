@@ -179,9 +179,7 @@ def single_acquisition_downsample(acq_path, new_trg_path, n):
             og_name = filename_list[0]  # first of list=name
             ext = filename_list[-1]  # last of list=extension
 
-            if (ext == "tif" or ext == "tiff") and (
-                not check_overflowed_stack(og_name)
-            ):  # only ds tiff files, ignore spill-over stack
+            if (ext == "tif" or ext == "tiff") and (not check_overflowed_stack(og_name)):  # all tiff files, except overflowed stacks
                 if multi_fish_flag:  # save the ds images in fish folder
                     fish_num = og_name[og_name.casefold().find("fish") + len("fish")]
                     save_path = os.path.join(new_trg_path, "fish" + str(fish_num))
@@ -189,15 +187,15 @@ def single_acquisition_downsample(acq_path, new_trg_path, n):
                 else:
                     save_path = new_trg_path
 
-                if og_name.endswith("_MMStack"):  # remove 'MMStack' in saved name
-                    save_name = og_name[: -len("_MMStack")] + "_ds." + ext
-                else:
-                    save_name = og_name + "_ds." + ext
+                if n == 1: # no downscaling needed
+                    img = tiff.imread(filepath)
+                    save_name = f"{og_name.replace("_MMStack", "")}.{ext}"
+                    # shutil.copy(src=filepath, dst=os.path.join(save_path, save_name))
+                    tiff.imwrite(os.path.join(save_path, save_name), data=img, compression='Deflate')
+                    print(f"compressed image: {os.path.join(save_path, save_name)}")
 
-                if n == 1:  # no downscaling needed
-                    shutil.copy(src=filepath, dst=os.path.join(save_path, save_name))
-                    print(f"copied image: {os.path.join(save_path, save_name)}")
-                else:  # downscale
+                else: # downscale by n
+                    save_name = f"{og_name.replace("_MMStack", "")}_ds.{ext}"
                     tiff.imwrite(
                         os.path.join(save_path, save_name),
                         read_n_downscale_image(read_path=filepath, n=n),

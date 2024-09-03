@@ -722,7 +722,7 @@ def img_stitcher_3D(global_coords_px, img_path_list, bg_sub=True, save_path=None
 
     # Save the stitched image if save_path is provided
     if save_path:
-        tiff.imwrite(save_path, data=stitched_image, compression=compression_type)
+        tiff.imwrite(save_path, data=stitched_image, compression=compression_type, bigtiff=True)
         return None
     else:
         return stitched_image

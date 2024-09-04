@@ -67,11 +67,11 @@ for acq_folder_path in acq_folder_path_list:
                                     'acquisition_path': acq_folder_path_list,
                                     'fish': fish_list,
                                     'pos': pos_list,
-                                    'imaging': imaging_list,
+                                    'imaging_mode': imaging_list,
                                     'channel': channel_list
                                     })
         # delta_t_df = format_time_df(times)
         df_per_fish_list.append(df_one_fish)
 
 all_df = pd.concat(df_per_fish_list, ignore_index=True)
-all_df.to_csv(save_directory.joinpath("delta_t.csv"))
+all_df.to_csv(save_directory.joinpath("acquisition_times.csv"))

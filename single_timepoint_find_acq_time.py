@@ -37,7 +37,7 @@ for acq_folder_path in acq_folder_path_list:
                 imaging_folder = pos_folder.joinpath(imaging)
                 for channel in natsorted([dir for dir in imaging_folder.iterdir() if dir.is_dir()]):
                     channel_folder = imaging_folder.joinpath(channel)
-                    channel_time = {}
+                    # channel_time = {}
                     for tp in natsorted([dir for dir in channel_folder.iterdir() if dir.is_dir()]):
                         tp_folder = channel_folder.joinpath(tp)
                         meta = misc_functions_rplab.MMMetadata(tp_folder)
@@ -52,9 +52,9 @@ for acq_folder_path in acq_folder_path_list:
                                     time_received = meta.summary_metadata["StartTime"]
                                 except KeyError:
                                     pass
-                        channel_time[tp.name] = time_received
+                        # channel_time[tp.name] = time_received
                     #get time
-                    tp_list.append(channel_time)
+                    tp_list.append(time_received)
                     #get other info
                     acq_folder_path_list.append(acq_folder_path)
                     fish_list.append(fish.name)
@@ -74,4 +74,6 @@ for acq_folder_path in acq_folder_path_list:
         df_per_fish_list.append(df_one_fish)
 
 all_df = pd.concat(df_per_fish_list, ignore_index=True)
+all_df['acquisition_start_time'] = pd.to_datetime(all_df['acquisition_start_time']) #str to datetime objects
+
 all_df.to_csv(save_directory.joinpath("acquisition_times.csv"))

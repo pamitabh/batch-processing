@@ -8,12 +8,11 @@
 import os
 import shutil
 
+import batchprocessing_functions_v5 as bpf
 import numpy as np
 import skimage as ski
 from natsort import natsorted
 from tqdm import tqdm
-
-import user_friendly_downsampling_mip_stitch_batchprocess_code.batchprocessing_functions_v5 as bpf
 
 action_flag = 0
 

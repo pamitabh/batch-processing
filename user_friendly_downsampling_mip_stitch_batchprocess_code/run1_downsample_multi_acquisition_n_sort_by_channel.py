@@ -2,7 +2,7 @@ import os
 import shutil
 from pathlib import Path
 
-import user_friendly_downsampling_mip_stitch_batchprocess_code.batchprocessing_functions_v5 as bpf
+import batchprocessing_functions_v5 as bpf
 
 # %%
 action_flag = 0

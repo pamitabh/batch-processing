@@ -107,3 +107,8 @@ for (
                     os.path.join(save_path, save_name),
                     compression_type,
                 )
+
+print(f'Done! Processed images are in: {save_path}')
+#wait for user to close the window
+input("Press Enter to close the program...")
+exit()

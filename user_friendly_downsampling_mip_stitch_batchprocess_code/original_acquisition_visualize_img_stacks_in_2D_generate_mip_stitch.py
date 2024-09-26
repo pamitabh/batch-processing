@@ -238,3 +238,6 @@ if action_flag != 2: # not 'only mip' so stitch
                         )  # save the bg subtracted stitched image
 
 print(f'Done! Processed images are in: {new_trg}')
+#wait for user to close the window
+input("Press Enter to close the program...")
+exit()

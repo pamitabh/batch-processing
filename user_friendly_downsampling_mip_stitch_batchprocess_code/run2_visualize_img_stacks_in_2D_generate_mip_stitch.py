@@ -133,3 +133,7 @@ for main_dir in main_dir_list:
                     stitched_img_bgsub_rescaled,
                     check_contrast=False,
                 )  # save the bg subtracted stitched image
+print("Done! Processed images are in '<channelname>_mip' and '<channelname>_mip_bgsub_rescaled' folders")
+#wait for user to close the window
+input("Press Enter to close the program...")
+exit()

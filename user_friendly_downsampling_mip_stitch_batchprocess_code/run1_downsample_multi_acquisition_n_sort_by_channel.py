@@ -106,3 +106,6 @@ if action_flag != 2:  # Sort by channel
                             print(f"Directory '{sub}' created")
                         shutil.move(filepath, dest)  # move files
 print("Successfully completed all tasks!")
+#wait for user to close the window
+input("Press Enter to close the program...")
+exit()

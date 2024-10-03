@@ -132,6 +132,27 @@ def find_multi_subdir(subdir_path, subdir_name):
                 break
     return multi_subdir_flag
 
+def check_n_rename_old_imgname(save_name, path_name):
+    '''checks if the save_name is the old name and changes it to the new name which includes the subdir names'''
+    old_name_flag = True
+    channel_list = ["BF", "GFP", "RFP"]
+    keywords = ["pos", "timepoint"] + channel_list
+
+    for keyword in keywords:
+        if keyword.casefold() in save_name.casefold():
+            old_name_flag = False
+            break
+        
+    if old_name_flag:
+        save_name_list = path_name.split(os.sep)[-5:]
+        for i in range(len(save_name_list)):
+            #lowercase everthing in the list except the channel names
+            if save_name_list[i] not in channel_list:
+                save_name_list[i] = save_name_list[i].lower()
+        #concatenate everything with a "_" in between
+        save_name = "_".join(save_name_list)      
+    return save_name
+
 
 # Important functions
 
@@ -189,13 +210,18 @@ def single_acquisition_downsample(acq_path, new_trg_path, n):
 
                 if n == 1: # no downscaling needed
                     img = tiff.imread(filepath)
-                    save_name = f"{og_name.replace("_MMStack", "")}.{ext}"
+                    save_name = f"{og_name.replace("_MMStack", "")}"
+                    save_name = check_n_rename_old_imgname(save_name, root)
+                    save_name = f"{save_name}.{ext}"
                     # shutil.copy(src=filepath, dst=os.path.join(save_path, save_name))
                     tiff.imwrite(os.path.join(save_path, save_name), data=img, compression='Deflate')
                     print(f"compressed image: {os.path.join(save_path, save_name)}")
 
                 else: # downscale by n
-                    save_name = f"{og_name.replace("_MMStack", "")}_ds.{ext}"
+                    save_name = f"{og_name.replace("_MMStack", "")}"
+                    save_name = check_n_rename_old_imgname(save_name, root)
+                    save_name = f"{save_name}_ds.{ext}"
+                    
                     tiff.imwrite(
                         os.path.join(save_path, save_name),
                         read_n_downscale_image(read_path=filepath, n=n),

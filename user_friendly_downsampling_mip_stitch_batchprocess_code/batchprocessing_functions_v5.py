@@ -136,7 +136,7 @@ def check_n_rename_old_imgname(save_name, path_name):
     '''checks if the save_name is the old name and changes it to the new name which includes the subdir names'''
     old_name_flag = True
     channel_list = ["BF", "GFP", "RFP"]
-    keywords = ["pos", "timepoint"] + channel_list
+    keywords = ["pos"] + channel_list
 
     for keyword in keywords:
         if keyword.casefold() in save_name.casefold():
@@ -202,7 +202,12 @@ def single_acquisition_downsample(acq_path, new_trg_path, n):
 
             if (ext == "tif" or ext == "tiff") and (not check_overflowed_stack(og_name)):  # all tiff files, except overflowed stacks
                 if multi_fish_flag:  # save the ds images in fish folder
-                    fish_num = og_name[og_name.casefold().find("fish") + len("fish")]
+                    fish_num_str = filepath[filepath.casefold().rfind("fish") + len("fish")]
+                    try:
+                        fish_num = int(fish_num_str)
+                    except ValueError:
+                        print(f"Error: Couldn't find fish number in {filepath}")
+                        exit()
                     save_path = os.path.join(new_trg_path, "fish" + str(fish_num))
                     check_create_save_path(save_path)  # make fish num folders
                 else:

@@ -11,7 +11,7 @@ import misc_functions_rplab
 acq_folder_path = input("Enter the path of Acquisition folder for original images: ")
 
 save_directory_default = os.path.expanduser(os.path.join("~", "Documents"))
-save_directory = input("Enter the Save folder for original images [default-Documents]: ") or save_directory_default
+save_directory = input("Enter the Save folder for delta time csv [default-Documents]: ") or save_directory_default
 
 acq_folder = pathlib.Path(acq_folder_path)
 save_directory = pathlib.Path(save_directory).joinpath(f"{acq_folder.parent.name}_delta_t")

@@ -25,44 +25,43 @@ while action_flag == 0:
         print("Invalid value: Re-Enter")
 
 # %%
-# get user input for source and dest
-src, trg = "", ""
-while src == trg or src == "" or trg == "":
-    src = os.path.normpath(
-        input("Enter the Parent folder for original images (should contain 'Acquisition' folders): ")
-    )
-    trg = os.path.normpath(input("Enter the Destination folder: "))
-    if src == trg:
-        print("Parent and Destination folders cannot be empty or have the same location. Re-Enter..")
-
-# n is the downscaling factor in x and y, change it accordingly.
-n = int(input("Enter downscaling factor for x and y dimensions (default=4):") or "4")
-if n < 1:
-    print("User Error: downscaling factor MUST be a positive integer. Exiting")
-    exit()
-elif n == 1:
-    print("Downscaling factor is 1, no downscaling will be done but images will be compressed.")
-    print("Images will be saved in '.tif' format with Lossless 'Deflate' compression. This should reduce file size by ~ 50%.")
-    user_confirm = input("Do you want to continue? ([y]/n):") or "y"
-    if user_confirm.casefold() != "y":
-        print("Exiting..")
-        exit()
+# get user input for source and dest for action_flag 1 and 2
+if action_flag == 1 or action_flag == 2:
+    src, trg = "", ""
+    while src == trg or src == "" or trg == "":
+        src = os.path.normpath(
+            input("Enter the Parent folder for original images (should contain 'Acquisition' folders): ")
+        )
+        trg = os.path.normpath(input("Enter the Destination folder: "))
+        if src == trg:
+            print("Parent and Destination folders cannot be empty or have the same location. Re-Enter..")
+else: #only for action_flag 3 (sort by channel)
+    trg_path = os.path.normpath(input("Enter the Parent folder for images (image names should contain channel name): "))
     
-
-# single_fish_flag is used to find if single acquisitions have single fish or not
-# single_fish_input = input("Is there ONLY 1 fish per Acquisition? ([y]/n):") or "y"
-# if single_fish_input.casefold() not in ("y", "n"):
-#     print("User Error: Need to enter 'y' or 'n'. Exiting")
-#     exit()
-# single_fish_flag = True if single_fish_input.casefold() == "y" else False
-
-# %%
-new_folder_name = f"{os.path.split(src)[-1]}_downsampled_n{n}"
-trg_path = os.path.join(trg, new_folder_name)
-bpf.check_create_save_path(trg_path)
-
 # %%
 if action_flag != 3:  # Downsample
+    # n is the downscaling factor in x and y, change it accordingly.
+    n = int(input("Enter downscaling factor for x and y dimensions (default=4):") or "4")
+    if n < 1:
+        print("User Error: downscaling factor MUST be a positive integer. Exiting")
+        exit()
+    elif n == 1:
+        print("Downscaling factor is 1, no downscaling will be done but images will be compressed.")
+        print("Images will be saved in '.tif' format with Lossless 'Deflate' compression. This should reduce file size by ~ 50%.")
+        user_confirm = input("Do you want to continue? ([y]/n):") or "y"
+        if user_confirm.casefold() != "y":
+            print("Exiting..")
+            exit()
+    # single_fish_flag is used to find if single acquisitions have single fish or not
+    # single_fish_input = input("Is there ONLY 1 fish per Acquisition? ([y]/n):") or "y"
+    # if single_fish_input.casefold() not in ("y", "n"):
+    #     print("User Error: Need to enter 'y' or 'n'. Exiting")
+    #     exit()
+    # single_fish_flag = True if single_fish_input.casefold() == "y" else False
+
+    new_folder_name = f"{os.path.split(src)[-1]}_downsampled_n{n}"
+    trg_path = os.path.join(trg, new_folder_name)
+    bpf.check_create_save_path(trg_path)
     print("Downsampling images..")
     # oswalk to find all acquisition folders
     for root, subfolders, filenames in os.walk(src):
